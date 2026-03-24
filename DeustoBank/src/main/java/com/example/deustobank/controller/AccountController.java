@@ -53,10 +53,15 @@ public class AccountController {
                         @RequestParam Long toId,
                         @RequestParam double amount) {
         service.transfer(fromId, toId, amount);
-}
+    }
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id) {
         service.deleteAccount(id);
         return "Cuenta con ID " + id + " eliminada correctamente.";
+    }
+
+    @PutMapping("/{id}/status")
+    public Account changeStatus(@PathVariable Long id, @RequestParam boolean active) {
+        return service.cambiarEstadoCuenta(id, active);
     }
 }

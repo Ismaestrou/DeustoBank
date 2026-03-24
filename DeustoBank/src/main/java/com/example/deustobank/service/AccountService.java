@@ -51,7 +51,6 @@ public class AccountService {
 
     //Metodo que busca la cuenta
     public void deleteAccount(Long id) {
-        // 1. Comprobamos si la cuenta existe
         Account acc = repo.findById(id).orElseThrow(() -> new RuntimeException("Cuenta no encontrada para eliminar"));
 
         //Comprueba si el usuario tiene deudas (HU7 T3)
@@ -66,6 +65,13 @@ public class AccountService {
         }
 
         repo.delete(acc);
+    }
+
+    public Account cambiarEstadoCuenta(Long id, boolean status) {
+        Account acc = repo.findById(id).orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+        
+        acc.setActive(status);
+        return repo.save(acc);
     }
 
     public Account withdraw(Long id, double amount) {

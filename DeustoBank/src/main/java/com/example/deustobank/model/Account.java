@@ -17,6 +17,8 @@ public class Account {
     @PositiveOrZero
     private double balance;
 
+    private boolean active = true; //estado de la cuenta (activa o bloqueada). Por defecto avtiva
+
     public Account() {}
 
     public Long getId() {
@@ -37,5 +39,13 @@ public class Account {
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

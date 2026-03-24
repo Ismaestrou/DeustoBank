@@ -48,4 +48,10 @@ public class AccountController {
     public Account getById(@PathVariable Long id) {
         return service.getById(id);
     }
+    @PostMapping("/transfer")
+    public void transfer(@RequestParam Long fromId,
+                        @RequestParam Long toId,
+                        @RequestParam double amount) {
+        service.transfer(fromId, toId, amount);
+    }
 }

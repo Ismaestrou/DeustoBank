@@ -44,4 +44,8 @@ public class AccountController {
     public Account withdraw(@PathVariable Long id, @RequestParam double amount) {
         return service.withdraw(id, amount);
     }
+    @GetMapping("/{id}")
+    public Account getById(@PathVariable Long id) {
+        return service.getById(id);
+    }
 }

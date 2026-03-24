@@ -74,4 +74,8 @@ public class AccountService {
 
         return acc;
     }
+    public Account getById(Long id) {
+    return repo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
+}
 }

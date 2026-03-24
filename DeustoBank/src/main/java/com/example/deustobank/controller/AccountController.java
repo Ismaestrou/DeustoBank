@@ -48,4 +48,10 @@ public class AccountController {
     public Account getById(@PathVariable Long id) {
         return service.getById(id);
     }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable Long id) {
+        service.deleteAccount(id);
+        return "Cuenta con ID " + id + " eliminada correctamente.";
+    }
 }

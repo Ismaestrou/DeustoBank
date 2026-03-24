@@ -48,6 +48,19 @@ public class AccountService {
         return acc;
     }
 
+    //Metodo que busca la cuenta
+    public void deleteAccount(Long id) {
+        Account acc = repo.findById(id).orElseThrow(() -> new RuntimeException("Cuenta no encontrada para eliminar"));
+
+        List<Transaction> transactions = transactionRepo.findByAccountId(id);
+
+        if (transactions != null && !transactions.isEmpty()) {
+            transactionRepo.deleteAll(transactions);
+        }
+
+        repo.delete(acc);
+    }
+
     public Account withdraw(Long id, double amount) {
         Account acc = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));

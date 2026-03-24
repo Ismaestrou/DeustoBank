@@ -1,0 +1,111 @@
+/* Paleta de colores Deusto */
+:root {
+    --deusto-blue: #004a99;
+    --light-bg: #f4f7f9;
+    --white: #ffffff;
+    --danger: #d9534f;
+    --success: #5cb85c;
+    --text: #333;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: var(--light-bg);
+    color: var(--text);
+    margin: 0;
+}
+
+.header {
+    background-color: var(--deusto-blue);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.section-card {
+    background: var(--white);
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+h2 {
+    color: var(--deusto-blue);
+    margin-top: 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+h3 { color: #666; }
+
+.form-group label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+/* Colores específicos */
+.btn-primary { background: var(--deusto-blue); color: white; }
+.btn-secondary { background: #6c757d; color: white; margin-top: 5px; }
+.btn-deposit { background: var(--success); color: white; }
+.btn-withdraw { background: #f0ad4e; color: white; }
+.btn-transfer { background: #5bc0de; color: white; }
+.btn-danger { background: none; border: 2px solid var(--danger); color: var(--danger); }
+
+.btn:hover { opacity: 0.8; }
+
+.ops-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: end;
+}
+
+.btn-group-vertical .btn {
+    margin-bottom: 10px;
+}
+
+.account-details {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.delete-zone {
+    border: 1px solid #f8d7da;
+    background-color: #fff5f5;
+}
+.btn-success { 
+    background-color: #28a745; 
+    color: white; 
+    margin-top: 10px;
+}

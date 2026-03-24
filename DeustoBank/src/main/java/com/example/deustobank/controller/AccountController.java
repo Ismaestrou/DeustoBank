@@ -64,4 +64,5 @@ public class AccountController {
     public Account changeStatus(@PathVariable Long id, @RequestParam boolean active) {
         return service.cambiarEstadoCuenta(id, active);
     }
+    
 }

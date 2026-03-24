@@ -2,7 +2,7 @@ package com.example.deustobank.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 public class Account {
@@ -14,7 +14,7 @@ public class Account {
     @NotBlank
     private String ownerName;
 
-    @Positive
+    @PositiveOrZero
     private double balance;
 
     public Account() {}

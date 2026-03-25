@@ -56,7 +56,6 @@ public class AccountService {
         }
 
         account.setUser(user);
-        account.setActive(true);
 
         return repo.save(account);
     }
@@ -139,16 +138,6 @@ public class AccountService {
     }
 
     // =========================
-    // CAMBIAR ESTADO
-    // =========================
-
-    public Account cambiarEstadoCuenta(Long id, boolean status) {
-        Account acc = getById(id);
-        acc.setActive(status);
-        return repo.save(acc);
-    }
-
-    // =========================
     // ELIMINAR CUENTA
     // =========================
 
@@ -178,8 +167,8 @@ public class AccountService {
     private Account validarCuentaActiva(Long id) {
         Account acc = getById(id);
 
-        if (!acc.isActive()) {
-            throw new RuntimeException("Cuenta bloqueada");
+        if (!acc.getUser().isActive()) {
+            throw new RuntimeException("Operación denegada: El usuario está bloqueado.");
         }
 
         return acc;

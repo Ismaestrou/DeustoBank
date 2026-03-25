@@ -70,9 +70,4 @@ public class AccountController {
         return "Cuenta eliminada correctamente";
     }
 
-    @PutMapping("/{id}/status")
-    public Account changeStatus(@PathVariable Long id,
-                               @RequestParam boolean active) {
-        return service.cambiarEstadoCuenta(id, active);
-    }
 }

@@ -18,9 +18,6 @@ public class Account {
     @Column(nullable = false)
     private double balance;
 
-    @Column(nullable = false)
-    private boolean active = true;
-
     // 🔥 RELACIÓN CON USER (CLAVE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -54,14 +51,6 @@ public class Account {
 
     public void setBalance(double balance) {
         this.balance = balance;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
     }
 
     public User getUser() {

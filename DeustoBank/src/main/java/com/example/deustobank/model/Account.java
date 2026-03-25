@@ -2,7 +2,6 @@ package com.example.deustobank.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PositiveOrZero;
 
 @Entity
 @Table(name = "accounts")
@@ -16,7 +15,6 @@ public class Account {
     @Column(nullable = false)
     private String ownerName;
 
-    @PositiveOrZero(message = "El saldo no puede ser negativo")
     @Column(nullable = false)
     private double balance;
 
@@ -29,6 +27,10 @@ public class Account {
     private User user;
 
     public Account() {}
+
+    public boolean hasDebt() {
+        return this.balance < 0;
+    }
 
     // =====================
     // GETTERS & SETTERS

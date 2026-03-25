@@ -96,10 +96,6 @@ public class AccountService {
             throw new RuntimeException("Cantidad inválida");
         }
 
-        if (acc.getBalance() < amount) {
-            throw new RuntimeException("Saldo insuficiente");
-        }
-
         double before = acc.getBalance();
         double after = before - amount;
 
@@ -128,10 +124,6 @@ public class AccountService {
 
         Account from = validarCuentaActiva(fromId);
         Account to = validarCuentaActiva(toId);
-
-        if (from.getBalance() < amount) {
-            throw new RuntimeException("Saldo insuficiente");
-        }
 
         double fromBefore = from.getBalance();
         double toBefore = to.getBalance();

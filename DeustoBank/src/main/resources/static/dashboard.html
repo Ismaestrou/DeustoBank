@@ -114,11 +114,24 @@ async function actualizarDatos() {
 
         const cuenta = await response.json();
 
+        let extraAlert = '';
+        let colorClass = 'var(--deusto-blue)';
+        let displayBalance = cuenta.balance;
+
+        if (cuenta.balance < 0) {
+            colorClass = '#d9534f'; 
+            extraAlert = `<div style="background: #ffebee; color: #c62828; padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ef5350;">
+                            <strong>¡Alerta de Deuda!</strong> Tu saldo es negativo. Tienes una deuda pendiente de <strong>${Math.abs(cuenta.balance).toFixed(2)} €</strong>. 
+                            Por favor, realiza un ingreso lo antes posible.
+                          </div>`;
+        }
+
         document.getElementById('account-info').innerHTML = `
+            ${extraAlert}
             <p><strong>Titular:</strong> ${cuenta.ownerName}</p>
             <p><strong>Saldo:</strong> 
-                <span style="font-size:1.5em; color: var(--deusto-blue);">
-                    ${cuenta.balance.toFixed(2)} €
+                <span style="font-size:1.8em; color: ${colorClass}; font-weight: bold;">
+                    ${displayBalance.toFixed(2)} €
                 </span>
             </p>
             <p><small>ID: ${cuenta.id}</small></p>

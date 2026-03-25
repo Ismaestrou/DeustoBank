@@ -17,9 +17,15 @@
         <div class="section-card">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px;">
-                <h2 style="border: none; margin: 0;">Usuarios Registrados</h2>
-                <button class="btn btn-secondary" style="width: auto; padding: 8px 15px;"
-                    onclick="window.location.href='index.html'">Volver al inicio</button>
+                <h2 id="table-title" style="border: none; margin: 0;">Usuarios Registrados</h2>
+                <div>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; margin-right: 10px;"
+                        onclick="cargarUsuarios(true)">Ver Deudores</button>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px; margin-right: 10px;"
+                        onclick="cargarUsuarios(false)">Ver Todos</button>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px;"
+                        onclick="window.location.href='index.html'">Volver al inicio</button>
+                </div>
             </div>
 
             <div style="overflow-x: auto;">
@@ -41,9 +47,9 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', cargarUsuarios);
+        document.addEventListener('DOMContentLoaded', () => cargarUsuarios());
 
-        async function cargarUsuarios() {
+        async function cargarUsuarios(onlyDebtors = false) {
             try {
                 const requesterId = sessionStorage.getItem('userId');
                 if (!requesterId) {
@@ -52,10 +58,15 @@
                     return;
                 }
 
-                const response = await fetch('/api/admin/users?requesterId=' + requesterId);
+                document.getElementById('table-title').textContent = onlyDebtors ? 'Usuarios con Deudas' : 'Usuarios Registrados';
+
+                const url = onlyDebtors ? '/api/admin/users/debtors?requesterId=' + requesterId : '/api/admin/users?requesterId=' + requesterId;
+                const response = await fetch(url);
                 if (response.ok) {
                     const users = await response.json();
                     const tableBody = document.getElementById('usuarios-table-body');
+                    tableBody.innerHTML = '';
+
 
                     if (users.length === 0) {
                         tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 15px;">No hay usuarios registrados.</td></tr>';

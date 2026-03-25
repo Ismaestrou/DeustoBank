@@ -1,6 +1,7 @@
 package com.example.deustobank.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.deustobank.model.User;
@@ -15,13 +16,23 @@ public class AuthController {
     private AuthService service;
 
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return service.register(user);
+    public ResponseEntity<?> register(@RequestBody User user) {
+        try {
+            User savedUser = service.register(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
-    public User login(@RequestParam String dni,
-                      @RequestParam String password) {
-        return service.login(dni, password);
+    public ResponseEntity<?> login(@RequestParam String dni,
+            @RequestParam String password) {
+        try {
+            User user = service.login(dni, password);
+            return ResponseEntity.ok(user);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
     }
 }

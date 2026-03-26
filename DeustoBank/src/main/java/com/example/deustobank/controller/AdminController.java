@@ -47,21 +47,21 @@ public class AdminController {
     @PutMapping("/users/{id}/status")
     public ResponseEntity<?> toggleUserStatus(@PathVariable Long id, @RequestParam Long requesterId) {
         
-        // 1. Comprobamos que el que pide la acción es un ADMIN
+        //Comprobación de que el que pide la acción es un admin
         User requester = userRepository.findById(requesterId).orElse(null);
         if (requester == null || !"ADMIN".equals(requester.getRole())) {
             return ResponseEntity.status(403).body("Acceso denegado.");
         }
 
-        // 2. Buscamos al usuario que queremos bloquear/desbloquear
+        // Busqueda del usuario que queremos bloquear o desbloquear
         User targetUser = userRepository.findById(id).orElse(null);
         if (targetUser == null) {
             return ResponseEntity.status(404).body("Usuario no encontrado.");
         }
 
-        // 3. Cambiamos su estado (de true a false, o de false a true)
+        // Cambiamos su estado
         targetUser.setActive(!targetUser.isActive());
-        userRepository.save(targetUser); // Guardamos en la base de datos
+        userRepository.save(targetUser);
 
         return ResponseEntity.ok(targetUser);
     }

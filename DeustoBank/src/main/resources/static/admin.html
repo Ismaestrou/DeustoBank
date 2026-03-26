@@ -59,7 +59,6 @@
                     const users = await response.json();
                     const tableBody = document.getElementById('usuarios-table-body');
                     
-                    // Limpiamos la tabla antes de recargar
                     tableBody.innerHTML = '';
 
                     if (users.length === 0) {
@@ -75,12 +74,10 @@
                             '<span style="background: var(--deusto-blue); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.85em;">ADMIN</span>' :
                             '<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.85em;">USER</span>';
 
-                        // NUEVO: Etiquetas de colores para ver si está Activo o Bloqueado
                         const statusFormatted = user.active ? 
                             '<span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.85em;">ACTIVO</span>' : 
                             '<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.85em;">BLOQUEADO</span>';
 
-                        // NUEVO: El botón que cambia según el estado
                         const buttonAction = user.active ?
                             `<button onclick="cambiarEstado(${user.id}, true)" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Bloquear</button>` :
                             `<button onclick="cambiarEstado(${user.id}, false)" style="background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Desbloquear</button>`;
@@ -105,7 +102,6 @@
             }
         }
 
-        // NUEVA FUNCIÓN: Se conecta con tu AdminController.java al hacer clic en el botón
         async function cambiarEstado(userId, currentStatus) {
             const requesterId = sessionStorage.getItem('userId');
             const accion = currentStatus ? "bloquear" : "desbloquear";
@@ -117,7 +113,6 @@
                     });
                     
                     if(response.ok) {
-                        // Recargamos los usuarios para que la tabla y los botones se actualicen
                         cargarUsuarios();
                     } else {
                         alert("Hubo un error al intentar cambiar el estado del usuario.");

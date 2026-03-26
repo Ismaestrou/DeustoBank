@@ -72,7 +72,6 @@ input {
     transition: 0.3s;
 }
 
-/* Colores específicos */
 .btn-primary { background: var(--deusto-blue); color: white; }
 .btn-secondary { background: #6c757d; color: white; margin-top: 5px; }
 .btn-deposit { background: var(--success); color: white; }

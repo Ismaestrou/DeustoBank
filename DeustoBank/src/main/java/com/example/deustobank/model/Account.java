@@ -29,9 +29,7 @@ public class Account {
         return this.balance < 0;
     }
 
-    // =====================
     // GETTERS & SETTERS
-    // =====================
 
     public Long getId() {
         return id;

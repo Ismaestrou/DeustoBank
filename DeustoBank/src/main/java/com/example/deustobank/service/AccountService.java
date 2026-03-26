@@ -25,9 +25,7 @@ public class AccountService {
     @Autowired
     private UserRepository userRepo;
 
-    // =========================
     // OBTENER CUENTAS
-    // =========================
 
     public List<Account> getAll() {
         return repo.findAll();
@@ -42,9 +40,7 @@ public class AccountService {
         return repo.findByUserId(userId);
     }
 
-    // =========================
     // CREAR CUENTA
-    // =========================
 
     public Account create(Account account, Long userId) {
 
@@ -60,9 +56,7 @@ public class AccountService {
         return repo.save(account);
     }
 
-    // =========================
     // DEPÓSITO
-    // =========================
 
     public Account deposit(Long id, double amount) {
 
@@ -83,9 +77,7 @@ public class AccountService {
         return acc;
     }
 
-    // =========================
     // RETIRADA
-    // =========================
 
     public Account withdraw(Long id, double amount) {
 
@@ -106,9 +98,7 @@ public class AccountService {
         return acc;
     }
 
-    // =========================
     // TRANSFERENCIA
-    // =========================
 
     @Transactional
     public void transfer(Long fromId, Long toId, double amount) {
@@ -137,9 +127,7 @@ public class AccountService {
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
     }
 
-    // =========================
     // ELIMINAR CUENTA
-    // =========================
 
     public void deleteAccount(Long id) {
 
@@ -160,9 +148,6 @@ public class AccountService {
         repo.delete(acc);
     }
 
-    // =========================
-    // MÉTODOS PRIVADOS (PRO)
-    // =========================
 
     private Account validarCuentaActiva(Long id) {
         Account acc = getById(id);

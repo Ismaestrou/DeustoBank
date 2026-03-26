@@ -32,7 +32,6 @@ public class AuthService {
 
         user.setPassword(encoder.encode(user.getPassword()));
 
-        // 🔥 IMPORTANTE
         User savedUser = userRepo.saveAndFlush(user);
 
         try {

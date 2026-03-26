@@ -37,9 +37,7 @@
             <button class="btn btn-success" onclick="registrarReal()">Registrarme</button>
         </div>
 
-        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #eee;">
-            <a href="admin.html" style="color: var(--deusto-blue); text-decoration: none; font-size: 0.9em; font-weight: bold;">Acceder al panel de Administrador</a>
-        </div>
+
 
     </div>
 </div>
@@ -75,8 +73,13 @@ async function loginReal() {
         const user = await response.json();
 
         sessionStorage.setItem('userId', user.id);
+        sessionStorage.setItem('userRole', user.role);
 
-        window.location.href = 'dashboard.html';
+        if (user.role === 'ADMIN') {
+            window.location.href = 'admin.html';
+        } else {
+            window.location.href = 'dashboard.html';
+        }
     } else {
         alert("DNI o contraseña incorrectos");
     }

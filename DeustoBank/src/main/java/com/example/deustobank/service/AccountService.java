@@ -84,21 +84,29 @@ public class AccountService {
     public Account withdraw(Long id, double amount, Long requesterId) {
 
         Account acc = validarCuentaActiva(id);
-
+    
         checkAccess(acc, requesterId);
-
+    
         if (amount <= 0) {
             throw new RuntimeException("Cantidad inválida");
         }
-
+    
+        if (acc.getMonthlySpendingLimit() > 0) {
+            double newSpending = acc.getCurrentMonthSpending() + amount;
+            if (newSpending > acc.getMonthlySpendingLimit()) {
+                throw new RuntimeException("Límite de gasto mensual superado");
+            }
+            acc.setCurrentMonthSpending(newSpending);
+        }
+    
         double before = acc.getBalance();
         double after = before - amount;
-
+    
         acc.setBalance(after);
         repo.save(acc);
-
+    
         guardarTransaccion("WITHDRAW", amount, acc, before, after);
-
+    
         return acc;
     }
 
@@ -121,6 +129,14 @@ public class AccountService {
         // 🔥 CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
         checkAccess(from, requesterId);
 
+        if (from.getMonthlySpendingLimit() > 0) {
+            double newSpending = from.getCurrentMonthSpending() + amount;
+            if (newSpending > from.getMonthlySpendingLimit()) {
+                throw new RuntimeException("Límite de gasto mensual superado en la cuenta origen");
+            }
+            from.setCurrentMonthSpending(newSpending);
+        }
+
         double fromBefore = from.getBalance();
         double toBefore = to.getBalance();
 
@@ -133,6 +149,7 @@ public class AccountService {
         guardarTransaccion("TRANSFER_OUT", amount, from, fromBefore, from.getBalance());
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
     }
+
 
     // ELIMINAR CUENTA
 
@@ -195,6 +212,7 @@ public class AccountService {
         return accounts.stream()
                 .mapToDouble(Account::getBalance)
                 .sum();
+    }
 
     public Account setSpendingLimit(Long id, double limit) {
         if (limit < 0) throw new RuntimeException("El límite no puede ser negativo");

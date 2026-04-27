@@ -21,6 +21,10 @@ public class Account {
     @Column(nullable = false)
     private double monthlySpendingLimit = 0.0;
 
+    @Column(nullable = false)
+    private double currentMonthSpending = 0.0;
+
+
     // 🔥 RELACIÓN CON USER (CLAVE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -60,6 +64,14 @@ public class Account {
     
     public void setMonthlySpendingLimit(double monthlySpendingLimit) { 
         this.monthlySpendingLimit = monthlySpendingLimit; 
+    }
+
+    public double getCurrentMonthSpending() { 
+        return currentMonthSpending; 
+    }
+
+    public void setCurrentMonthSpending(double currentMonthSpending) { 
+        this.currentMonthSpending = currentMonthSpending; 
     }
 
     public User getUser() {

@@ -187,6 +187,7 @@ async function actualizarDatos() {
 // OPERAR (DEPOSIT / WITHDRAW)
 async function operar(tipo) {
     const id = sessionStorage.getItem('accountId');
+    const userId = sessionStorage.getItem('userId');
     const cantidad = document.getElementById('operation-amount').value;
 
     if (!cantidad || cantidad <= 0) {
@@ -195,7 +196,7 @@ async function operar(tipo) {
     }
 
     try {
-        const response = await fetch(`/accounts/${id}/${tipo}?amount=${cantidad}`, {
+        const response = await fetch(`/accounts/${id}/${tipo}?amount=${cantidad}&requesterId=${userId}`, {
             method: 'PUT'
         });
 

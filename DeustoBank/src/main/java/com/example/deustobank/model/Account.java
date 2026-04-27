@@ -19,16 +19,16 @@ public class Account {
     private double balance;
 
     @Column(nullable = false, columnDefinition = "float default 0.0")
-    private double monthlySpendingLimit = 0.0;
+    private double limiteGastoMensual = 0.0;
 
     @Column(nullable = false, columnDefinition = "float default 0.0")
-    private double currentMonthSpending = 0.0;
+    private double gastoMensualActual = 0.0;
 
     @Column(nullable = false, columnDefinition = "float default 0.0")
-    private double lowBalanceThreshold = 0.0;
+    private double umbralSaldoBajo = 0.0;
 
 
-    // 🔥 RELACIÓN CON USER (CLAVE)
+    // RELACIÓN CON USER (CLAVE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -61,28 +61,28 @@ public class Account {
         this.balance = balance;
     }
 
-    public double getMonthlySpendingLimit() { 
-        return monthlySpendingLimit; 
+    public double getLimiteGastoMensual() { 
+        return limiteGastoMensual; 
     }
     
-    public void setMonthlySpendingLimit(double monthlySpendingLimit) { 
-        this.monthlySpendingLimit = monthlySpendingLimit; 
+    public void setLimiteGastoMensual(double limiteGastoMensual) { 
+        this.limiteGastoMensual = limiteGastoMensual; 
     }
 
-    public double getCurrentMonthSpending() { 
-        return currentMonthSpending; 
+    public double getGastoMensualActual() { 
+        return gastoMensualActual; 
     }
 
-    public void setCurrentMonthSpending(double currentMonthSpending) { 
-        this.currentMonthSpending = currentMonthSpending; 
+    public void setGastoMensualActual(double gastoMensualActual) { 
+        this.gastoMensualActual = gastoMensualActual; 
     }
 
-    public double getLowBalanceThreshold() { 
-        return lowBalanceThreshold; 
+    public double getUmbralSaldoBajo() { 
+        return umbralSaldoBajo; 
     }
 
-    public void setLowBalanceThreshold(double lowBalanceThreshold) { 
-        this.lowBalanceThreshold = lowBalanceThreshold; 
+    public void setUmbralSaldoBajo(double umbralSaldoBajo) { 
+        this.umbralSaldoBajo = umbralSaldoBajo; 
     }
 
     public User getUser() {

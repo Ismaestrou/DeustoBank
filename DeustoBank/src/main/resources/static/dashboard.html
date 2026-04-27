@@ -65,6 +65,19 @@
     </section>
 
     <section class="section-card">
+        <h2>Alerta de Saldo Bajo</h2>
+        <p style="font-size: 0.9em; color: #666;">
+            Recibirás una alerta cuando tu saldo caiga por debajo de este umbral. Pon 0 para desactivarlo.
+        </p>
+        <div id="umbral-info"></div>
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Umbral de alerta (€):</label>
+            <input type="number" id="umbral-input" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <button class="btn btn-deposit" onclick="guardarUmbral()">Guardar umbral</button>
+    </section>
+
+    <section class="section-card">
         <h2>Editar Perfil</h2>
         <p style="font-size: 0.9em; color: #666;">
             Deja en blanco los campos que no quieras modificar.
@@ -178,6 +191,7 @@ async function actualizarDatos() {
         `;
 
         cargarLimite();
+        cargarUmbral();
 
     } catch (e) {
         alert("Error al cargar datos");
@@ -290,8 +304,8 @@ async function cargarLimite() {
     const response = await fetch(`/accounts/${id}`);
     const cuenta = await response.json();
 
-    const limite = cuenta.monthlySpendingLimit;
-    const gastado = cuenta.currentMonthSpending;
+    const limite = cuenta.limiteGastoMensual;
+    const gastado = cuenta.gastoMensualActual;
 
     document.getElementById('spending-limit-info').innerHTML = limite > 0
         ? `<p>Límite actual: <strong>${limite.toFixed(2)} €</strong> — Gastado este mes: <strong>${gastado.toFixed(2)} €</strong></p>`
@@ -308,7 +322,7 @@ async function guardarLimite() {
         return;
     }
 
-    const response = await fetch(`/accounts/${id}/spending-limit?limit=${limite}`, {
+    const response = await fetch(`/accounts/${id}/limite-gasto-mensual?limite=${limite}`, {
         method: 'PUT'
     });
 
@@ -316,6 +330,43 @@ async function guardarLimite() {
         alert("Límite guardado correctamente");
         document.getElementById('spending-limit-input').value = '';
         cargarLimite();
+    } else {
+        const msg = await response.text();
+        alert("Error: " + msg);
+    }
+}
+
+// UMBRAL SALDO BAJO - CARGAR
+async function cargarUmbral() {
+    const id = sessionStorage.getItem('accountId');
+    const response = await fetch(`/accounts/${id}`);
+    const cuenta = await response.json();
+
+    const umbral = cuenta.umbralSaldoBajo;
+
+    document.getElementById('umbral-info').innerHTML = umbral > 0
+        ? `<p>Umbral actual: <strong>${umbral.toFixed(2)} €</strong></p>`
+        : `<p>No tienes umbral de alerta configurado.</p>`;
+}
+
+// UMBRAL SALDO BAJO - GUARDAR
+async function guardarUmbral() {
+    const id = sessionStorage.getItem('accountId');
+    const umbral = document.getElementById('umbral-input').value;
+
+    if (umbral === '' || umbral < 0) {
+        alert("Introduce un umbral válido");
+        return;
+    }
+
+    const response = await fetch(`/accounts/${id}/umbral-saldo-bajo?umbral=${umbral}`, {
+        method: 'PUT'
+    });
+
+    if (response.ok) {
+        alert("Umbral guardado correctamente");
+        document.getElementById('umbral-input').value = '';
+        cargarUmbral();
     } else {
         const msg = await response.text();
         alert("Error: " + msg);

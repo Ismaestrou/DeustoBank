@@ -89,12 +89,12 @@ public class AccountService {
 
         if (amount <= 0) throw new RuntimeException("Cantidad inválida");
 
-        if (acc.getMonthlySpendingLimit() > 0) {
-            double newSpending = acc.getCurrentMonthSpending() + amount;
-            if (newSpending > acc.getMonthlySpendingLimit()) {
+        if (acc.getLimiteGastoMensual() > 0) {
+            double nuevoGasto = acc.getGastoMensualActual() + amount;
+            if (nuevoGasto > acc.getLimiteGastoMensual()) {
                 throw new RuntimeException("Límite de gasto mensual superado");
             }
-            acc.setCurrentMonthSpending(newSpending);
+            acc.setGastoMensualActual(nuevoGasto);
         }
 
         double before = acc.getBalance();
@@ -126,12 +126,12 @@ public class AccountService {
         // CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
         checkAccess(from, requesterId);
 
-        if (from.getMonthlySpendingLimit() > 0) {
-            double newSpending = from.getCurrentMonthSpending() + amount;
-            if (newSpending > from.getMonthlySpendingLimit()) {
-                throw new RuntimeException("Límite de gasto mensual superado en la cuenta origen");
+        if (from.getLimiteGastoMensual() > 0) {
+            double nuevoGasto = from.getGastoMensualActual() + amount;
+            if (nuevoGasto > from.getLimiteGastoMensual()) {
+                throw new RuntimeException("No se puede realizar la transferencia, debido a que ha superado el límite mensual");
             }
-            from.setCurrentMonthSpending(newSpending);
+            from.setGastoMensualActual(nuevoGasto);
         }
 
         double fromBefore = from.getBalance();
@@ -146,7 +146,6 @@ public class AccountService {
         guardarTransaccion("TRANSFER_OUT", amount, from, fromBefore, from.getBalance());
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
     }
-
 
     // ELIMINAR CUENTA
 
@@ -170,7 +169,6 @@ public class AccountService {
 
         repo.delete(acc);
     }
-
 
     private Account validarCuentaActiva(Long id) {
         Account acc = getById(id);
@@ -196,7 +194,6 @@ public class AccountService {
         User requester = userRepo.findById(requesterId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Si no es admin y no es dueño → denegar
         if (!"ADMIN".equals(requester.getRole()) &&
             !acc.getUser().getId().equals(requesterId)) {
             throw new RuntimeException("No autorizado");
@@ -211,23 +208,23 @@ public class AccountService {
                 .sum();
     }
 
-    public Account setSpendingLimit(Long id, double limit) {
-        if (limit < 0) throw new RuntimeException("El límite no puede ser negativo");
+    public Account setLimiteGastoMensual(Long id, double limite) {
+        if (limite < 0) throw new RuntimeException("El límite no puede ser negativo");
         Account acc = getById(id);
-        acc.setMonthlySpendingLimit(limit);
+        acc.setLimiteGastoMensual(limite);
         return repo.save(acc);
     }
 
-    public Account setLowBalanceThreshold(Long id, double threshold) {
-        if (threshold < 0) throw new RuntimeException("El umbral no puede ser negativo");
+    public Account setUmbralSaldoBajo(Long id, double umbral) {
+        if (umbral < 0) throw new RuntimeException("El umbral no puede ser negativo");
         Account acc = getById(id);
-        acc.setLowBalanceThreshold(threshold);
+        acc.setUmbralSaldoBajo(umbral);
         return repo.save(acc);
     }
 
     private String comprobarSaldoBajo(Account acc) {
-        if (acc.getLowBalanceThreshold() > 0 && acc.getBalance() < acc.getLowBalanceThreshold()) {
-            return "Saldo bajo: tu saldo (" + String.format("%.2f", acc.getBalance()) + " €) está por debajo de tu umbral de alerta (" + String.format("%.2f", acc.getLowBalanceThreshold()) + " €)";
+        if (acc.getUmbralSaldoBajo() > 0 && acc.getBalance() < acc.getUmbralSaldoBajo()) {
+            return "Saldo bajo: tu saldo (" + String.format("%.2f", acc.getBalance()) + " €) está por debajo de tu umbral de alerta (" + String.format("%.2f", acc.getUmbralSaldoBajo()) + " €)";
         }
         return null;
     }

@@ -224,6 +224,7 @@ async function operar(tipo) {
 // TRANSFERENCIA
 async function transferir() {
     const fromId = sessionStorage.getItem('accountId');
+    const userId = sessionStorage.getItem('userId');
     const toId = document.getElementById('destination-id').value;
     const amount = document.getElementById('transfer-amount').value;
 
@@ -239,7 +240,7 @@ async function transferir() {
 
     try {
         const response = await fetch(
-            `/accounts/transfer?fromId=${fromId}&toId=${toId}&amount=${amount}`,
+            `/accounts/transfer?fromId=${fromId}&toId=${toId}&amount=${amount}&requesterId=${userId}`,
             { method: 'POST' }
         );
 

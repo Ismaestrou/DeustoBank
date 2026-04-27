@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.deustobank.model.Account;
+import com.example.deustobank.model.AccountResponse;
 import com.example.deustobank.model.Transaction;
 import com.example.deustobank.service.AccountService;
 import com.example.deustobank.repository.TransactionRepository;
@@ -61,7 +62,7 @@ public List<Transaction> getTransactions(
         return service.create(account, userId);
     }
 
-    // 🔐 DEPÓSITO
+    // DEPÓSITO
     @PutMapping("/{id}/deposit")
     public Account deposit(@PathVariable Long id,
                            @RequestParam double amount,
@@ -70,16 +71,16 @@ public List<Transaction> getTransactions(
         return service.deposit(id, amount, requesterId);
     }
 
-    // 🔐 RETIRADA
+    // RETIRADA
     @PutMapping("/{id}/withdraw")
-    public Account withdraw(@PathVariable Long id,
+    public AccountResponse withdraw(@PathVariable Long id,
                             @RequestParam double amount,
                             @RequestParam Long requesterId) {
 
         return service.withdraw(id, amount, requesterId);
     }
 
-    // 🔐 TRANSFERENCIA
+    // TRANSFERENCIA
     @PostMapping("/transfer")
     public void transfer(@RequestParam Long fromId,
                          @RequestParam Long toId,
@@ -89,7 +90,7 @@ public List<Transaction> getTransactions(
         service.transfer(fromId, toId, amount, requesterId);
     }
 
-    // 🔐 ELIMINAR CUENTA
+    // ELIMINAR CUENTA
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id,
                          @RequestParam Long requesterId) {

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import com.example.deustobank.model.Account;
+import com.example.deustobank.model.AccountResponse;
 import com.example.deustobank.model.Transaction;
 import com.example.deustobank.model.User;
 import com.example.deustobank.repository.AccountRepository;
@@ -81,16 +82,13 @@ public class AccountService {
 
     // RETIRADA
 
-    public Account withdraw(Long id, double amount, Long requesterId) {
+    public AccountResponse withdraw(Long id, double amount, Long requesterId) {
 
         Account acc = validarCuentaActiva(id);
-    
         checkAccess(acc, requesterId);
-    
-        if (amount <= 0) {
-            throw new RuntimeException("Cantidad inválida");
-        }
-    
+
+        if (amount <= 0) throw new RuntimeException("Cantidad inválida");
+
         if (acc.getMonthlySpendingLimit() > 0) {
             double newSpending = acc.getCurrentMonthSpending() + amount;
             if (newSpending > acc.getMonthlySpendingLimit()) {
@@ -98,16 +96,15 @@ public class AccountService {
             }
             acc.setCurrentMonthSpending(newSpending);
         }
-    
+
         double before = acc.getBalance();
         double after = before - amount;
-    
+
         acc.setBalance(after);
         repo.save(acc);
-    
         guardarTransaccion("WITHDRAW", amount, acc, before, after);
-    
-        return acc;
+
+        return new AccountResponse(acc, comprobarSaldoBajo(acc));
     }
 
     // TRANSFERENCIA
@@ -126,7 +123,7 @@ public class AccountService {
         Account from = validarCuentaActiva(fromId);
         Account to = validarCuentaActiva(toId);
 
-        // 🔥 CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
+        // CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
         checkAccess(from, requesterId);
 
         if (from.getMonthlySpendingLimit() > 0) {
@@ -226,5 +223,12 @@ public class AccountService {
         Account acc = getById(id);
         acc.setLowBalanceThreshold(threshold);
         return repo.save(acc);
+    }
+
+    private String comprobarSaldoBajo(Account acc) {
+        if (acc.getLowBalanceThreshold() > 0 && acc.getBalance() < acc.getLowBalanceThreshold()) {
+            return "Saldo bajo: tu saldo (" + String.format("%.2f", acc.getBalance()) + " €) está por debajo de tu umbral de alerta (" + String.format("%.2f", acc.getLowBalanceThreshold()) + " €)";
+        }
+        return null;
     }
 }

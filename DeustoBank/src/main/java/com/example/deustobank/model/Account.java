@@ -18,6 +18,9 @@ public class Account {
     @Column(nullable = false)
     private double balance;
 
+    @Column(nullable = false)
+    private double monthlySpendingLimit = 0.0;
+
     // 🔥 RELACIÓN CON USER (CLAVE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -49,6 +52,14 @@ public class Account {
 
     public void setBalance(double balance) {
         this.balance = balance;
+    }
+
+    public double getMonthlySpendingLimit() { 
+        return monthlySpendingLimit; 
+    }
+    
+    public void setMonthlySpendingLimit(double monthlySpendingLimit) { 
+        this.monthlySpendingLimit = monthlySpendingLimit; 
     }
 
     public User getUser() {

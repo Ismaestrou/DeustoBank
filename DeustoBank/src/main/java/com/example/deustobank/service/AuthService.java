@@ -83,4 +83,21 @@ public class AuthService {
 
         return nuevaPassword;
     }
+
+    public User updateProfile(Long id, String email, String phone) {
+        User user = getUserOrThrow(id);
+    
+        if (email != null && !email.equals(user.getEmail())) {
+            if (userRepo.findByEmail(email).isPresent()) {
+                throw new RuntimeException("El email ya está en uso por otro usuario");
+            }
+            user.setEmail(email);
+        }
+    
+        if (phone != null) {
+            user.setPhone(phone);
+        }
+    
+        return userRepo.save(user);
+    }
 }

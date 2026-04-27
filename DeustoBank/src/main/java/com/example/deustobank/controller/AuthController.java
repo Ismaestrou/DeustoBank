@@ -35,4 +35,15 @@ public class AuthController {
             return ResponseEntity.status(401).body(e.getMessage());
         }
     }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateProfile(@PathVariable Long id,
+            @RequestParam(required = false) String email, @RequestParam(required = false) String phone) {
+        try {
+            User updated = service.updateProfile(id, email, phone);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

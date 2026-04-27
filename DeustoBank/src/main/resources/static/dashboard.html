@@ -65,6 +65,22 @@
     </section>
 
     <section class="section-card">
+        <h2>Editar Perfil</h2>
+        <p style="font-size: 0.9em; color: #666;">
+            Deja en blanco los campos que no quieras modificar.
+        </p>
+        <div class="form-group">
+            <label>Nuevo email:</label>
+            <input type="email" id="edit-email" placeholder="nuevo@email.com">
+        </div>
+        <div class="form-group">
+            <label>Nuevo teléfono:</label>
+            <input type="text" id="edit-phone" placeholder="600 000 000">
+        </div>
+        <button class="btn btn-deposit" onclick="actualizarPerfil()">Guardar cambios</button>
+    </section>
+
+    <section class="section-card">
         <h2>Historial de Movimientos</h2>
         <div class="ops-grid" style="margin-bottom: 15px;">
             <div class="form-group">
@@ -169,7 +185,6 @@ async function actualizarDatos() {
 }
 
 // OPERAR (DEPOSIT / WITHDRAW)
-// OPERAR (DEPOSIT / WITHDRAW)
 async function operar(tipo) {
     const id = sessionStorage.getItem('accountId');
     const cantidad = document.getElementById('operation-amount').value;
@@ -187,7 +202,6 @@ async function operar(tipo) {
         if (response.ok) {
             const data = await response.json();
 
-            // Si es retirada, comprobamos si hay alerta de saldo bajo
             if (tipo === 'withdraw' && data.alert) {
                 alert("Operación realizada\n\n" + data.alert);
             } else {
@@ -243,6 +257,31 @@ async function transferir() {
     }
 }
 
+// ELIMINAR CUENTA
+async function eliminarCuenta() {
+    const id = sessionStorage.getItem('accountId');
+
+    if (!confirm("¿Seguro? Esta acción no se puede deshacer")) return;
+
+    try {
+        const response = await fetch(`/accounts/${id}`, {
+            method: 'DELETE'
+        });
+
+        const msg = await response.text();
+
+        if (response.ok) {
+            alert(msg);
+            cerrarSesion();
+        } else {
+            alert(msg);
+        }
+
+    } catch (e) {
+        alert("Error eliminando cuenta");
+    }
+}
+
 // LÍMITE DE GASTO - CARGAR
 async function cargarLimite() {
     const id = sessionStorage.getItem('accountId');
@@ -278,6 +317,40 @@ async function guardarLimite() {
     } else {
         const msg = await response.text();
         alert("Error: " + msg);
+    }
+}
+
+// EDITAR PERFIL
+async function actualizarPerfil() {
+    const userId = sessionStorage.getItem('userId');
+    const email = document.getElementById('edit-email').value;
+    const phone = document.getElementById('edit-phone').value;
+
+    if (!email && !phone) {
+        alert("Introduce al menos un campo para actualizar");
+        return;
+    }
+
+    let params = new URLSearchParams();
+    if (email) params.append('email', email);
+    if (phone) params.append('phone', phone);
+
+    try {
+        const response = await fetch(`/auth/update/${userId}?${params.toString()}`, {
+            method: 'PUT'
+        });
+
+        if (response.ok) {
+            alert("Perfil actualizado correctamente");
+            document.getElementById('edit-email').value = '';
+            document.getElementById('edit-phone').value = '';
+        } else {
+            const msg = await response.text();
+            alert("Error: " + msg);
+        }
+
+    } catch (e) {
+        alert("Error de conexión");
     }
 }
 

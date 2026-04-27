@@ -82,4 +82,9 @@ public List<Transaction> getTransactions(
         return "Cuenta eliminada correctamente";
     }
 
+    @PutMapping("/{id}/spending-limit")
+    public Account setSpendingLimit(@PathVariable Long id, @RequestParam double limit) {
+        return service.setSpendingLimit(id, limit);
+    }
+
 }

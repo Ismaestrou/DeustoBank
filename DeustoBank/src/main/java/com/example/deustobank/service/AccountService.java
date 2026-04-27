@@ -168,4 +168,11 @@ public class AccountService {
 
         transactionRepo.save(t);
     }
+
+    public Account setSpendingLimit(Long id, double limit) {
+        if (limit < 0) throw new RuntimeException("El límite no puede ser negativo");
+        Account acc = getById(id);
+        acc.setMonthlySpendingLimit(limit);
+        return repo.save(acc);
+    }
 }

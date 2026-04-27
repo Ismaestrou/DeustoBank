@@ -74,4 +74,13 @@ public class AuthService {
             throw new RuntimeException("Acceso denegado: solo administradores");
         }
     }
+    public String resetPassword(Long userId) {
+        User user = getUserOrThrow(userId);
+
+        String nuevaPassword = "Deusto" + userId + "!";
+        user.setPassword(encoder.encode(nuevaPassword));
+        userRepo.save(user);
+
+        return nuevaPassword;
+    }
 }

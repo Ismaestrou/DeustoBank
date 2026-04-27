@@ -35,6 +35,7 @@
                             <th style="padding: 12px; text-align: left;">Saldo</th>
                             <th style="padding: 12px; text-align: left;">Transacciones</th>
                             <th style="padding: 12px; text-align: left;">Acción</th>
+                            <th style="padding: 12px; text-align: left;">Contraseña</th>
                         </tr>
                     </thead>
                     <tbody id="usuarios-table-body">
@@ -111,7 +112,8 @@
                             <td><b>${totalBalance.toFixed(2)} €</b></td>
                             <td>${transactions}</td>
                             <td>${buttonAction}</td>
-                        `;
+                            <td><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>
+                            `;
 
                         tableBody.appendChild(tr);
                     }
@@ -146,6 +148,27 @@
                     console.error(e);
                     alert('Error de conexión');
                 }
+            }
+        }
+        async function resetPassword(userId) {
+            const requesterId = sessionStorage.getItem('userId');
+
+            if (!confirm("¿Resetear la contraseña de este usuario?")) return;
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/reset-password?requesterId=${requesterId}`, {
+                    method: 'PUT'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Contraseña reseteada correctamente.\nNueva contraseña temporal: ${data.nuevaPassword}`);
+                } else {
+                    alert("Error al resetear la contraseña");
+                }
+
+            } catch (e) {
+                alert("Error de conexión");
             }
         }
     </script>

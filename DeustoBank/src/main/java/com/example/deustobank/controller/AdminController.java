@@ -92,4 +92,13 @@ public class AdminController {
             "transactions", transactions
         ));
     }
+    @PutMapping("/users/{id}/reset-password")
+    public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestParam Long requesterId) {
+
+        authService.checkAdmin(requesterId);
+
+        String nuevaPassword = authService.resetPassword(id);
+
+        return ResponseEntity.ok(Map.of("nuevaPassword", nuevaPassword));
+    }
 }

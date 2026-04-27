@@ -61,4 +61,17 @@ public class AuthService {
 
         return user;
     }
+
+    public User getUserOrThrow(Long id) {
+    return userRepo.findById(id)
+        .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    public void checkAdmin(Long userId) {
+        User user = getUserOrThrow(userId);
+
+        if (!"ADMIN".equals(user.getRole())) {
+            throw new RuntimeException("Acceso denegado: solo administradores");
+        }
+    }
 }

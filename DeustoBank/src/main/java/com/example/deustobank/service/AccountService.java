@@ -58,9 +58,11 @@ public class AccountService {
 
     // DEPÓSITO
 
-    public Account deposit(Long id, double amount) {
+    public Account deposit(Long id, double amount, Long requesterId) {
 
         Account acc = validarCuentaActiva(id);
+
+        checkAccess(acc, requesterId);
 
         if (amount <= 0) {
             throw new RuntimeException("Cantidad inválida");
@@ -79,9 +81,11 @@ public class AccountService {
 
     // RETIRADA
 
-    public Account withdraw(Long id, double amount) {
+    public Account withdraw(Long id, double amount, Long requesterId) {
 
         Account acc = validarCuentaActiva(id);
+
+        checkAccess(acc, requesterId);
 
         if (amount <= 0) {
             throw new RuntimeException("Cantidad inválida");
@@ -101,7 +105,7 @@ public class AccountService {
     // TRANSFERENCIA
 
     @Transactional
-    public void transfer(Long fromId, Long toId, double amount) {
+    public void transfer(Long fromId, Long toId, double amount, Long requesterId) {
 
         if (fromId.equals(toId)) {
             throw new RuntimeException("No puedes transferir a la misma cuenta");
@@ -113,6 +117,9 @@ public class AccountService {
 
         Account from = validarCuentaActiva(fromId);
         Account to = validarCuentaActiva(toId);
+
+        // 🔥 CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
+        checkAccess(from, requesterId);
 
         double fromBefore = from.getBalance();
         double toBefore = to.getBalance();
@@ -129,9 +136,11 @@ public class AccountService {
 
     // ELIMINAR CUENTA
 
-    public void deleteAccount(Long id) {
+    public void deleteAccount(Long id, Long requesterId) {
 
         Account acc = getById(id);
+
+        checkAccess(acc, requesterId);
 
         if (acc.getBalance() < 0) {
             throw new RuntimeException(
@@ -167,5 +176,24 @@ public class AccountService {
         t.setBalanceAfter(after);
 
         transactionRepo.save(t);
+    }
+
+    private void checkAccess(Account acc, Long requesterId) {
+        User requester = userRepo.findById(requesterId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Si no es admin y no es dueño → denegar
+        if (!"ADMIN".equals(requester.getRole()) &&
+            !acc.getUser().getId().equals(requesterId)) {
+            throw new RuntimeException("No autorizado");
+        }
+    }
+
+    public double getTotalBalanceByUser(Long userId) {
+        List<Account> accounts = repo.findByUserId(userId);
+
+        return accounts.stream()
+                .mapToDouble(Account::getBalance)
+                .sum();
     }
 }

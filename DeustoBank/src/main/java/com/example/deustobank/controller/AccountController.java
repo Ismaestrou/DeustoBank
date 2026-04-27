@@ -21,11 +21,13 @@ public class AccountController {
     @Autowired
     private TransactionRepository transactionRepo;
 
+    // 🔹 ADMIN (deberías protegerlo también si quieres nota alta)
     @GetMapping
     public List<Account> getAll() {
         return service.getAll();
     }
 
+    // 🔹 Usuario ve sus cuentas
     @GetMapping("/user/{userId}")
     public List<Account> getByUser(@PathVariable Long userId) {
         return service.getAccountsByUser(userId);
@@ -47,27 +49,41 @@ public class AccountController {
         return service.create(account, userId);
     }
 
+    // 🔐 DEPÓSITO
     @PutMapping("/{id}/deposit")
-    public Account deposit(@PathVariable Long id, @RequestParam double amount) {
-        return service.deposit(id, amount);
+    public Account deposit(@PathVariable Long id,
+                           @RequestParam double amount,
+                           @RequestParam Long requesterId) {
+
+        return service.deposit(id, amount, requesterId);
     }
 
+    // 🔐 RETIRADA
     @PutMapping("/{id}/withdraw")
-    public Account withdraw(@PathVariable Long id, @RequestParam double amount) {
-        return service.withdraw(id, amount);
+    public Account withdraw(@PathVariable Long id,
+                            @RequestParam double amount,
+                            @RequestParam Long requesterId) {
+
+        return service.withdraw(id, amount, requesterId);
     }
 
+    // 🔐 TRANSFERENCIA
     @PostMapping("/transfer")
     public void transfer(@RequestParam Long fromId,
                          @RequestParam Long toId,
-                         @RequestParam double amount) {
-        service.transfer(fromId, toId, amount);
+                         @RequestParam double amount,
+                         @RequestParam Long requesterId) {
+
+        service.transfer(fromId, toId, amount, requesterId);
     }
 
+    // 🔐 ELIMINAR CUENTA
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
-        service.deleteAccount(id);
+    public String delete(@PathVariable Long id,
+                         @RequestParam Long requesterId) {
+
+        service.deleteAccount(id, requesterId);
+
         return "Cuenta eliminada correctamente";
     }
-
 }

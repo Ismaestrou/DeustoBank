@@ -18,13 +18,13 @@ public class Account {
     @Column(nullable = false)
     private double balance;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "float default 0.0")
     private double monthlySpendingLimit = 0.0;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "float default 0.0")
     private double currentMonthSpending = 0.0;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "float default 0.0")
     private double lowBalanceThreshold = 0.0;
 
 

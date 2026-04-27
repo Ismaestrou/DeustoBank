@@ -220,4 +220,11 @@ public class AccountService {
         acc.setMonthlySpendingLimit(limit);
         return repo.save(acc);
     }
+
+    public Account setLowBalanceThreshold(Long id, double threshold) {
+        if (threshold < 0) throw new RuntimeException("El umbral no puede ser negativo");
+        Account acc = getById(id);
+        acc.setLowBalanceThreshold(threshold);
+        return repo.save(acc);
+    }
 }

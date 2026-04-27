@@ -24,6 +24,9 @@ public class Account {
     @Column(nullable = false)
     private double currentMonthSpending = 0.0;
 
+    @Column(nullable = false)
+    private double lowBalanceThreshold = 0.0;
+
 
     // 🔥 RELACIÓN CON USER (CLAVE)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,6 +75,14 @@ public class Account {
 
     public void setCurrentMonthSpending(double currentMonthSpending) { 
         this.currentMonthSpending = currentMonthSpending; 
+    }
+
+    public double getLowBalanceThreshold() { 
+        return lowBalanceThreshold; 
+    }
+
+    public void setLowBalanceThreshold(double lowBalanceThreshold) { 
+        this.lowBalanceThreshold = lowBalanceThreshold; 
     }
 
     public User getUser() {

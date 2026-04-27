@@ -103,4 +103,9 @@ public List<Transaction> getTransactions(
     public Account setSpendingLimit(@PathVariable Long id, @RequestParam double limit) {
         return service.setSpendingLimit(id, limit);
     }
+
+    @PutMapping("/{id}/low-balance-threshold")
+        public Account setLowBalanceThreshold(@PathVariable Long id, @RequestParam double threshold) {
+        return service.setLowBalanceThreshold(id, threshold);
+    }
 }

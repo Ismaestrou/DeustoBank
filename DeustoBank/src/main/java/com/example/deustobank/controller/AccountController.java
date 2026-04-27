@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.example.deustobank.model.Account;
 import com.example.deustobank.model.Transaction;
@@ -37,9 +39,19 @@ public class AccountController {
     }
 
     @GetMapping("/{id}/transactions")
-    public List<Transaction> getTransactions(@PathVariable Long id) {
-        return transactionRepo.findByAccountId(id);
+public List<Transaction> getTransactions(
+        @PathVariable Long id,
+        @RequestParam(required = false) String from,
+        @RequestParam(required = false) String to) {
+
+    if (from != null && to != null) {
+        LocalDateTime fromDate = LocalDate.parse(from).atStartOfDay();
+        LocalDateTime toDate   = LocalDate.parse(to).atTime(23, 59, 59);
+        return transactionRepo.findByAccountIdAndDateBetween(id, fromDate, toDate);
     }
+
+    return transactionRepo.findByAccountId(id);
+}
 
     @PostMapping
     public Account create(@Valid @RequestBody Account account,

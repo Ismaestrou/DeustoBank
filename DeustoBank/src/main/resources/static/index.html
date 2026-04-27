@@ -81,7 +81,14 @@ async function loginReal() {
             window.location.href = 'dashboard.html';
         }
     } else {
-        alert("DNI o contraseña incorrectos");
+        const msg = await response.text();
+        if (msg.includes("CUENTA_BLOQUEADA")) {
+            alert("Tu cuenta ha sido bloqueada por demasiados intentos fallidos. Contacta con tu banco.");
+        } else if (msg.includes("Intentos restantes")) {
+            alert(msg);
+        } else {
+            alert("DNI o contraseña incorrectos");
+        }
     }
 }
 

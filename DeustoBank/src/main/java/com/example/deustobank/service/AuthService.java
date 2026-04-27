@@ -55,9 +55,25 @@ public class AuthService {
         User user = userRepo.findByDni(dni)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (!encoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Contraseña incorrecta");
+        if (!user.isActive()) {
+            throw new RuntimeException("CUENTA_BLOQUEADA");
         }
+
+        if (!encoder.matches(password, user.getPassword())) {
+            user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
+
+            if (user.getFailedLoginAttempts() >= 3) {
+                user.setActive(false);
+                userRepo.save(user);
+                throw new RuntimeException("CUENTA_BLOQUEADA");
+            }
+
+            userRepo.save(user);
+            throw new RuntimeException("Contraseña incorrecta. Intentos restantes: " + (3 - user.getFailedLoginAttempts()));
+        }
+
+        user.setFailedLoginAttempts(0);
+        userRepo.save(user);
 
         return user;
     }

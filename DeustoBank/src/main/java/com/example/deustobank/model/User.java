@@ -32,6 +32,9 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
 
+    @Column(nullable = false)
+    private int failedLoginAttempts = 0;
+
     // GETTERS Y SETTERS
 
     public Long getId() { return id; }
@@ -56,4 +59,7 @@ public class User {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public int getFailedLoginAttempts() { return failedLoginAttempts; }
+    public void setFailedLoginAttempts(int attempts) { this.failedLoginAttempts = attempts; }
 }

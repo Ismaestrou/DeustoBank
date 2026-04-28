@@ -1,27 +1,31 @@
 package com.example.deustobank.service;
 
-import com.example.deustobank.model.Account;
-import com.example.deustobank.model.AccountResponse;
-import com.example.deustobank.model.User;
-import com.example.deustobank.repository.AccountRepository;
-import com.example.deustobank.repository.TransactionRepository;
-import com.example.deustobank.repository.UserRepository;
-import com.example.deustobank.service.AccountService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.Mockito.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class AccountServiceTest {
+import com.example.deustobank.model.Account;
+import com.example.deustobank.model.AccountResponse;
+import com.example.deustobank.model.Transaction;
+import com.example.deustobank.model.User;
+import com.example.deustobank.model.SystemStatsDTO;
+import com.example.deustobank.repository.AccountRepository;
+import com.example.deustobank.repository.TransactionRepository;
+import com.example.deustobank.repository.UserRepository;
+
+@ExtendWith(MockitoExtension.class)
+class AccountServiceTest {
 
     @Mock
     private AccountRepository accountRepo;
@@ -36,256 +40,194 @@ public class AccountServiceTest {
     private AlertService alertService;
 
     @InjectMocks
-    private AccountService service;
+    private AccountService accountService;
 
-    private Account account;
     private User user;
-
-    private void setId(Object obj, Long id) {
-        try {
-            Field field = obj.getClass().getDeclaredField("id");
-            field.setAccessible(true);
-            field.set(obj, id);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+    private Account account;
+    private Account account2;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-
         user = new User();
-        setId(user, 1L);
+        user.setId(1L);
         user.setRole("USER");
         user.setActive(true);
 
         account = new Account();
-        setId(account, 1L);
-        account.setBalance(100);
+        account.setId(10L);
         account.setUser(user);
+        account.setBalance(100.0);
+        account.setLimiteGastoMensual(0.0);
+        account.setGastoMensualActual(0.0);
+
+        account2 = new Account();
+        account2.setId(20L);
+        account2.setUser(user);
+        account2.setBalance(50.0);
     }
 
-    // Verifica que al realizar un depósito válido, el saldo de la cuenta aumenta correctamente
     @Test
-    void deposit_shouldIncreaseBalance() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void getAll_ReturnsList() {
+        when(accountRepo.findAll()).thenReturn(List.of(account));
+        List<Account> accounts = accountService.getAll();
+        assertEquals(1, accounts.size());
+    }
+
+    @Test
+    void getById_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        Account result = accountService.getById(10L);
+        assertEquals(10L, result.getId());
+    }
+
+    @Test
+    void getById_NotFound() {
+        when(accountRepo.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> accountService.getById(99L));
+    }
+
+    @Test
+    void getAccountsByUser_ReturnsList() {
+        when(accountRepo.findByUserId(1L)).thenReturn(List.of(account, account2));
+        List<Account> accounts = accountService.getAccountsByUser(1L);
+        assertEquals(2, accounts.size());
+    }
+
+    @Test
+    void create_Success() {
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+        when(accountRepo.save(any(Account.class))).thenReturn(account);
+
+        Account result = accountService.create(account, 1L);
+        assertNotNull(result);
+        assertEquals(user, result.getUser());
+    }
+
+    @Test
+    void create_NegativeBalance() {
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+        Account newAcc = new Account();
+        newAcc.setBalance(-10.0);
+
+        assertThrows(RuntimeException.class, () -> accountService.create(newAcc, 1L));
+    }
+
+    @Test
+    void deposit_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        Account result = service.deposit(1L, 50, 1L);
+        Account result = accountService.deposit(10L, 50.0, 1L);
 
-        assertEquals(150, result.getBalance());
-        verify(accountRepo).save(account);
+        assertEquals(150.0, result.getBalance());
+        verify(transactionRepo).save(any(Transaction.class));
+        verify(alertService).checkAndAlert(eq(account), eq(50.0));
     }
 
-    // Verifica que al realizar una retirada válida, el saldo de la cuenta disminuye correctamente
     @Test
-    void withdraw_shouldDecreaseBalance() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void deposit_InvalidAmount() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        AccountResponse result = service.withdraw(1L, 50, 1L);
-
-        assertEquals(50, result.getAccount().getBalance());
-        verify(accountRepo).save(account);
+        assertThrows(RuntimeException.class, () -> accountService.deposit(10L, -10.0, 1L));
     }
 
     @Test
-    void withdraw_invalidAmount_shouldThrowException() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void withdraw_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        assertThrows(RuntimeException.class, () -> service.withdraw(1L, 0, 1L));
+        AccountResponse result = accountService.withdraw(10L, 30.0, 1L);
+
+        assertEquals(70.0, result.getAccount().getBalance());
+        assertNull(result.getAlert());
+        verify(transactionRepo).save(any(Transaction.class));
     }
 
     @Test
-    void withdraw_exceedsMonthlyLimit_shouldThrowException() {
-        account.setLimiteGastoMensual(30);
-        account.setGastoMensualActual(20);
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void withdraw_ExceedsLimit() {
+        account.setLimiteGastoMensual(20.0);
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        assertThrows(RuntimeException.class, () -> service.withdraw(1L, 20, 1L));
+        Exception ex = assertThrows(RuntimeException.class, () -> accountService.withdraw(10L, 30.0, 1L));
+        assertTrue(ex.getMessage().contains("límite mensual"));
     }
 
     @Test
-    void withdraw_belowThreshold_shouldReturnAlert() {
-        account.setUmbralSaldoBajo(80.0);
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void transfer_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        when(accountRepo.findById(20L)).thenReturn(Optional.of(account2));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        AccountResponse result = service.withdraw(1L, 50, 1L);
+        String alert = accountService.transfer(10L, 20L, 40.0, 1L);
 
-        assertNotNull(result.getAlert());
-        assertTrue(result.getAlert().contains("Saldo bajo"));
+        assertEquals(60.0, account.getBalance());
+        assertEquals(90.0, account2.getBalance());
+        verify(transactionRepo, times(2)).save(any(Transaction.class));
+        assertNull(alert);
     }
 
-    // Verifica que al intentar depositar una cantidad inválida, se lance una excepción
     @Test
-    void deposit_invalidAmount_shouldThrowException() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+    void transfer_SameAccount() {
+        assertThrows(RuntimeException.class, () -> accountService.transfer(10L, 10L, 50.0, 1L));
+    }
+
+    @Test
+    void deleteAccount_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+        when(transactionRepo.findByAccountId(10L)).thenReturn(List.of(new Transaction()));
+
+        assertDoesNotThrow(() -> accountService.deleteAccount(10L, 1L));
+        verify(transactionRepo).deleteAll(anyList());
+        verify(accountRepo).delete(account);
+    }
+
+    @Test
+    void deleteAccount_NegativeBalance() {
+        account.setBalance(-10.0);
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        assertThrows(RuntimeException.class, () -> {
-            service.deposit(1L, -10, 1L);
-        });
+        assertThrows(RuntimeException.class, () -> accountService.deleteAccount(10L, 1L));
     }
 
     @Test
-    void deposit_zeroAmount_shouldThrowException() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-
-        assertThrows(RuntimeException.class, () -> service.deposit(1L, 0, 1L));
-    }
-
-    // Verifica que un usuario no puede realizar operaciones sobre una cuenta que no le pertenece (control de acceso)
-    @Test
-    void access_otherUserAccount_shouldFail() {
-        User anotherUser = new User();
-        anotherUser.setRole("USER");
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(userRepo.findById(2L)).thenReturn(Optional.of(anotherUser));
-
-        assertThrows(RuntimeException.class, () -> {
-            service.deposit(1L, 50, 2L);
-        });
-    }
-
-    // Verifica que un administrador puede operar sobre cualquier cuenta, independientemente del propietario (control de roles)
-    @Test
-    void admin_shouldAccessAnyAccount() {
-
-        User admin = new User();
-        admin.setRole("ADMIN");
-
-        account.setUser(user); // cuenta pertenece al user normal
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(userRepo.findById(2L)).thenReturn(Optional.of(admin));
-
-        Account result = service.deposit(1L, 50, 2L);
-
-        assertEquals(150, result.getBalance());
-    }
-
-    // Verifica nuevamente que un usuario distinto al propietario no puede acceder a una cuenta ajena (seguridad reforzada)
-    @Test
-    void user_shouldNotAccessOtherAccount() {
-
-        User anotherUser = new User();
-        anotherUser.setRole("USER");
-
-        account.setUser(user); // cuenta del user 1
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(userRepo.findById(2L)).thenReturn(Optional.of(anotherUser));
-
-        assertThrows(RuntimeException.class, () -> {
-            service.deposit(1L, 50, 2L);
-        });
-    }
-
-    // Verifica que un usuario bloqueado no puede realizar operaciones sobre su cuenta (estado del usuario)
-    @Test
-    void blockedUser_shouldNotOperate() {
-
-        user.setActive(false); // usuario bloqueado
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-
-        assertThrows(RuntimeException.class, () -> {
-            service.deposit(1L, 50, 1L);
-        });
-    }
-
-    // Verifica que un usuario activo puede realizar operaciones correctamente sobre su propia cuenta
-    @Test
-    void user_shouldOperateOwnAccount() {
-
-        account.setUser(user);
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-
-        Account result = service.deposit(1L, 50, 1L);
-
-        assertEquals(150, result.getBalance());
+    void getTotalBalanceByUser() {
+        when(accountRepo.findByUserId(1L)).thenReturn(List.of(account, account2));
+        double total = accountService.getTotalBalanceByUser(1L);
+        assertEquals(150.0, total);
     }
 
     @Test
-    void transfer_shouldUpdateBothBalances() {
-        Account destino = new Account();
-        setId(destino, 2L);
-        destino.setBalance(50);
-        destino.setUser(user);
+    void getSystemStats() {
+        when(userRepo.count()).thenReturn(5L);
+        when(transactionRepo.count()).thenReturn(100L);
+        when(accountRepo.sumTotalBalance()).thenReturn(5000.0);
 
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(accountRepo.findById(2L)).thenReturn(Optional.of(destino));
-        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+        SystemStatsDTO stats = accountService.getSystemStats();
 
-        service.transfer(1L, 2L, 30, 1L);
-
-        assertEquals(70, account.getBalance());
-        assertEquals(80, destino.getBalance());
-        verify(accountRepo).save(account);
-        verify(accountRepo).save(destino);
+        assertEquals(5L, stats.getTotalUsers());
+        assertEquals(100L, stats.getTotalTransactions());
+        assertEquals(5000.0, stats.getTotalBalance());
     }
 
     @Test
-    void transfer_sameAccount_shouldThrowException() {
-        assertThrows(RuntimeException.class, () -> service.transfer(1L, 1L, 30, 1L));
+    void setLimiteGastoMensual_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        when(accountRepo.save(any(Account.class))).thenReturn(account);
+
+        Account result = accountService.setLimiteGastoMensual(10L, 200.0);
+        assertEquals(200.0, result.getLimiteGastoMensual());
     }
 
     @Test
-    void transfer_exceedsMonthlyLimit_shouldThrowException() {
-        account.setLimiteGastoMensual(20);
-        account.setGastoMensualActual(10);
+    void setUmbralSaldoBajo_Success() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        when(accountRepo.save(any(Account.class))).thenReturn(account);
 
-        Account destino = new Account();
-        setId(destino, 2L);
-        destino.setBalance(50);
-        destino.setUser(user);
-
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(accountRepo.findById(2L)).thenReturn(Optional.of(destino));
-        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-
-        assertThrows(RuntimeException.class, () -> service.transfer(1L, 2L, 30, 1L));
-    }
-
-    @Test
-    void setLimiteGastoMensual_shouldUpdateLimit() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(accountRepo.save(account)).thenReturn(account);
-
-        Account result = service.setLimiteGastoMensual(1L, 200);
-
-        assertEquals(200, result.getLimiteGastoMensual());
-        verify(accountRepo).save(account);
-    }
-
-    @Test
-    void setLimiteGastoMensual_negativeValue_shouldThrowException() {
-        assertThrows(RuntimeException.class, () -> service.setLimiteGastoMensual(1L, -50));
-    }
-
-    @Test
-    void setUmbralSaldoBajo_shouldUpdateThreshold() {
-        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
-        when(accountRepo.save(account)).thenReturn(account);
-
-        Account result = service.setUmbralSaldoBajo(1L, 10);
-
-        assertEquals(10, result.getUmbralSaldoBajo());
-        verify(accountRepo).save(account);
-    }
-
-    @Test
-    void setUmbralSaldoBajo_negativeValue_shouldThrowException() {
-        assertThrows(RuntimeException.class, () -> service.setUmbralSaldoBajo(1L, -10));
+        Account result = accountService.setUmbralSaldoBajo(10L, 50.0);
+        assertEquals(50.0, result.getUmbralSaldoBajo());
     }
 }

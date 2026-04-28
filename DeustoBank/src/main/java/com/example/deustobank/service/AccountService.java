@@ -8,9 +8,11 @@ import com.example.deustobank.model.Account;
 import com.example.deustobank.model.AccountResponse;
 import com.example.deustobank.model.Transaction;
 import com.example.deustobank.model.User;
+import com.example.deustobank.model.SystemStatsDTO;
 import com.example.deustobank.repository.AccountRepository;
 import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
+
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -206,6 +208,12 @@ public class AccountService {
         return accounts.stream()
                 .mapToDouble(Account::getBalance)
                 .sum();
+    }
+    public SystemStatsDTO getSystemStats() {
+        long totalUsers        = userRepo.count();
+        long totalTransactions = transactionRepo.count();
+        double totalBalance    = repo.sumTotalBalance();
+        return new SystemStatsDTO(totalUsers, totalTransactions, totalBalance);
     }
 
     public Account setLimiteGastoMensual(Long id, double limite) {

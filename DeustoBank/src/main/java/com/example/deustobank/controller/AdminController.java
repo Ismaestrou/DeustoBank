@@ -1,6 +1,7 @@
 package com.example.deustobank.controller;
 
 import com.example.deustobank.model.User;
+import com.example.deustobank.model.SystemStatsDTO;
 import com.example.deustobank.repository.UserRepository;
 import com.example.deustobank.service.AuthService;
 
@@ -91,6 +92,12 @@ public class AdminController {
             "totalBalance", totalBalance,
             "transactions", transactions
         ));
+    }
+    @GetMapping("/stats")
+    public ResponseEntity<?> getSystemStats(@RequestParam Long requesterId) {
+        authService.checkAdmin(requesterId);
+        SystemStatsDTO stats = accountService.getSystemStats();
+        return ResponseEntity.ok(stats);
     }
     @PutMapping("/users/{id}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestParam Long requesterId) {

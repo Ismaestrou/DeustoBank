@@ -14,6 +14,28 @@
     </header>
 
     <div class="main-container">
+        <!-- TARJETAS DE ESTADÍSTICAS -->
+        <div class="section-card" style="margin-bottom: 24px;">
+            <h2 style="margin-bottom: 20px;">Estadísticas del Sistema</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+
+                <div style="flex:1; min-width:180px; background: var(--deusto-blue); color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                    <div style="font-size:2.4rem; font-weight:700;" id="stat-users">—</div>
+                    <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;"> Usuarios Registrados</div>
+                </div>
+
+                <div style="flex:1; min-width:180px; background: #17a2b8; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                    <div style="font-size:2.4rem; font-weight:700;" id="stat-transactions">—</div>
+                    <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;">  Transacciones Totales</div>
+                </div>
+
+                <div style="flex:1; min-width:180px; background: #28a745; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                    <div style="font-size:2.4rem; font-weight:700;" id="stat-balance">—</div>
+                    <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;"> Saldo Total del Sistema</div>
+                </div>
+
+            </div>
+        </div>
         <div class="section-card">
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px;">
@@ -46,7 +68,10 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', cargarUsuarios);
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarEstadisticas();
+            cargarUsuarios();
+        });
 
         async function cargarUsuarios() {
             try {
@@ -169,6 +194,22 @@
 
             } catch (e) {
                 alert("Error de conexión");
+            }
+        }
+        async function cargarEstadisticas() {
+            const requesterId = sessionStorage.getItem('userId');
+            if (!requesterId) return;
+
+            try {
+                const res = await fetch('/api/admin/stats?requesterId=' + requesterId);
+                if (!res.ok) return;
+
+                const stats = await res.json();
+                document.getElementById('stat-users').textContent        = stats.totalUsers;
+                document.getElementById('stat-transactions').textContent = stats.totalTransactions;
+                document.getElementById('stat-balance').textContent      = stats.totalBalance.toFixed(2) + ' €';
+            } catch (e) {
+                console.error('Error al cargar estadísticas', e);
             }
         }
     </script>

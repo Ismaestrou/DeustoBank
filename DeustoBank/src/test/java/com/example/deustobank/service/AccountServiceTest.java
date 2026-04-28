@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -89,6 +90,38 @@ public class AccountServiceTest {
         verify(accountRepo).save(account);
     }
 
+    @Test
+    void withdraw_invalidAmount_shouldThrowException() {
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> service.withdraw(1L, 0, 1L));
+    }
+
+    @Test
+    void withdraw_exceedsMonthlyLimit_shouldThrowException() {
+        account.setLimiteGastoMensual(30);
+        account.setGastoMensualActual(20);
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> service.withdraw(1L, 20, 1L));
+    }
+
+    @Test
+    void withdraw_belowThreshold_shouldReturnAlert() {
+        account.setUmbralSaldoBajo(80.0);
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        AccountResponse result = service.withdraw(1L, 50, 1L);
+
+        assertNotNull(result.getAlert());
+        assertTrue(result.getAlert().contains("Saldo bajo"));
+    }
+
     // Verifica que al intentar depositar una cantidad inválida, se lance una excepción
     @Test
     void deposit_invalidAmount_shouldThrowException() {
@@ -98,6 +131,14 @@ public class AccountServiceTest {
         assertThrows(RuntimeException.class, () -> {
             service.deposit(1L, -10, 1L);
         });
+    }
+
+    @Test
+    void deposit_zeroAmount_shouldThrowException() {
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> service.deposit(1L, 0, 1L));
     }
 
     // Verifica que un usuario no puede realizar operaciones sobre una cuenta que no le pertenece (control de acceso)
@@ -173,5 +214,78 @@ public class AccountServiceTest {
         Account result = service.deposit(1L, 50, 1L);
 
         assertEquals(150, result.getBalance());
+    }
+
+    @Test
+    void transfer_shouldUpdateBothBalances() {
+        Account destino = new Account();
+        setId(destino, 2L);
+        destino.setBalance(50);
+        destino.setUser(user);
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(accountRepo.findById(2L)).thenReturn(Optional.of(destino));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        service.transfer(1L, 2L, 30, 1L);
+
+        assertEquals(70, account.getBalance());
+        assertEquals(80, destino.getBalance());
+        verify(accountRepo).save(account);
+        verify(accountRepo).save(destino);
+    }
+
+    @Test
+    void transfer_sameAccount_shouldThrowException() {
+        assertThrows(RuntimeException.class, () -> service.transfer(1L, 1L, 30, 1L));
+    }
+
+    @Test
+    void transfer_exceedsMonthlyLimit_shouldThrowException() {
+        account.setLimiteGastoMensual(20);
+        account.setGastoMensualActual(10);
+
+        Account destino = new Account();
+        setId(destino, 2L);
+        destino.setBalance(50);
+        destino.setUser(user);
+
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(accountRepo.findById(2L)).thenReturn(Optional.of(destino));
+        when(userRepo.findById(1L)).thenReturn(Optional.of(user));
+
+        assertThrows(RuntimeException.class, () -> service.transfer(1L, 2L, 30, 1L));
+    }
+
+    @Test
+    void setLimiteGastoMensual_shouldUpdateLimit() {
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(accountRepo.save(account)).thenReturn(account);
+
+        Account result = service.setLimiteGastoMensual(1L, 200);
+
+        assertEquals(200, result.getLimiteGastoMensual());
+        verify(accountRepo).save(account);
+    }
+
+    @Test
+    void setLimiteGastoMensual_negativeValue_shouldThrowException() {
+        assertThrows(RuntimeException.class, () -> service.setLimiteGastoMensual(1L, -50));
+    }
+
+    @Test
+    void setUmbralSaldoBajo_shouldUpdateThreshold() {
+        when(accountRepo.findById(1L)).thenReturn(Optional.of(account));
+        when(accountRepo.save(account)).thenReturn(account);
+
+        Account result = service.setUmbralSaldoBajo(1L, 10);
+
+        assertEquals(10, result.getUmbralSaldoBajo());
+        verify(accountRepo).save(account);
+    }
+
+    @Test
+    void setUmbralSaldoBajo_negativeValue_shouldThrowException() {
+        assertThrows(RuntimeException.class, () -> service.setUmbralSaldoBajo(1L, -10));
     }
 }

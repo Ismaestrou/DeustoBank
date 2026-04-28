@@ -66,10 +66,14 @@ public class AccountController {
     }
 
     @PutMapping("/{id}/deposit")
-    public Account deposit(@PathVariable Long id,
-                           @RequestParam double amount,
-                           @RequestParam Long requesterId) {
-        return service.deposit(id, amount, requesterId);
+    public ResponseEntity<?> deposit(@PathVariable Long id,
+                                    @RequestParam double amount,
+                                    @RequestParam Long requesterId) {
+        try {
+            return ResponseEntity.ok(service.deposit(id, amount, requesterId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body("Error deposit");
+        }
     }
 
     @PutMapping("/{id}/withdraw")
@@ -85,15 +89,25 @@ public class AccountController {
 
     @PostMapping("/transfer")
     public ResponseEntity<?> transfer(@RequestParam Long fromId,
-                                  @RequestParam Long toId,
-                                  @RequestParam double amount,
-                                  @RequestParam Long requesterId) {
+                                    @RequestParam Long toId,
+                                    @RequestParam double amount,
+                                    @RequestParam Long requesterId) {
         try {
             String alerta = service.transfer(fromId, toId, amount, requesterId);
+
+            // CASO CON ALERTA → JSON
             if (alerta != null) {
-                return ResponseEntity.ok(alerta);
+                return ResponseEntity.ok(
+                    java.util.Map.of(
+                        "message", "Transferencia realizada",
+                        "alert", alerta
+                    )
+                );
             }
-            return ResponseEntity.ok("Transferencia realizada correctamente");
+
+            // CASO NORMAL → STRING
+            return ResponseEntity.ok("Transferencia realizada");
+
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -106,12 +120,12 @@ public class AccountController {
         return "Cuenta eliminada correctamente";
     }
 
-    @PutMapping("/{id}/limite-gasto-mensual")
+    @PutMapping("/{id}/limite")
     public Account setLimiteGastoMensual(@PathVariable Long id, @RequestParam double limite) {
         return service.setLimiteGastoMensual(id, limite);
     }
 
-    @PutMapping("/{id}/umbral-saldo-bajo")
+    @PutMapping("/{id}/umbral")
     public Account setUmbralSaldoBajo(@PathVariable Long id, @RequestParam double umbral) {
         return service.setUmbralSaldoBajo(id, umbral);
     }

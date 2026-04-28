@@ -10,18 +10,21 @@ class TokenBlacklistServiceTest {
     private TokenBlacklistService service;
 
     @BeforeEach
-    void setUp() {
+   void setUp() {
         service = new TokenBlacklistService();
     }
 
     @Test
-    void invalidateAndIsBlacklisted() {
+    void invalidateAndCheckToken() {
         String token = "my-test-token";
-        
-        assertFalse(service.isBlacklisted(token));
-        
+
+        // Al inicio NO está invalidado
+        assertFalse(service.isInvalidated(token));
+
+        // Lo invalidamos
         service.invalidate(token);
-        
-        assertTrue(service.isBlacklisted(token));
+
+        // Ahora sí debe estar invalidado
+        assertTrue(service.isInvalidated(token));
     }
 }

@@ -18,6 +18,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.example.deustobank.model.User;
+import com.example.deustobank.repository.AccountRepository;
+import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -27,10 +29,18 @@ class DeustoBankIntegrationTest {
     private TestRestTemplate restTemplate;
 
     @Autowired
+    private AccountRepository accountRepository;
+
+    @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     @BeforeEach
     void setup() {
+        transactionRepository.deleteAll();
+        accountRepository.deleteAll();
         userRepository.deleteAll();
     }
 

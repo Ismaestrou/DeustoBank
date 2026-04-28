@@ -116,7 +116,7 @@ public class AccountService {
     // TRANSFERENCIA
 
     @Transactional
-    public void transfer(Long fromId, Long toId, double amount, Long requesterId) {
+    public String transfer(Long fromId, Long toId, double amount, Long requesterId) {
 
         if (fromId.equals(toId)) {
             throw new RuntimeException("No puedes transferir a la misma cuenta");
@@ -129,7 +129,7 @@ public class AccountService {
         Account from = validarCuentaActiva(fromId);
         Account to = validarCuentaActiva(toId);
 
-        // CONTROL DE ACCESO SOLO SOBRE LA CUENTA ORIGEN
+        //CONTROL DE ACCESO SOBRE LA CUENTA ORIGEN
         checkAccess(from, requesterId);
 
         if (from.getLimiteGastoMensual() > 0) {
@@ -153,6 +153,8 @@ public class AccountService {
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
         alertService.checkAndAlert(from, amount);
         alertService.checkAndAlert(to, amount);
+
+        return comprobarSaldoBajo(from);
     }
 
     // ELIMINAR CUENTA

@@ -259,7 +259,12 @@ async function transferir() {
         );
 
         if (response.ok) {
-            alert("Transferencia realizada correctamente");
+            const msg = await response.text();
+            if (msg !== "Transferencia realizada correctamente") {
+                alert("Transferencia realizada\n\n" + msg);
+            } else {
+                alert("Transferencia realizada correctamente");
+            }
             document.getElementById('destination-id').value = '';
             document.getElementById('transfer-amount').value = '';
             actualizarDatos();

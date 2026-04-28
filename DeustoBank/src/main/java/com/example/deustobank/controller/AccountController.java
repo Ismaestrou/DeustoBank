@@ -44,14 +44,19 @@ public class AccountController {
     public List<Transaction> getTransactions(@PathVariable Long id,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {
-
         if (from != null && to != null) {
             LocalDateTime fromDate = LocalDate.parse(from).atStartOfDay();
             LocalDateTime toDate = LocalDate.parse(to).atTime(23, 59, 59);
             return transactionRepo.findByAccountIdAndDateBetween(id, fromDate, toDate);
         }
-
         return transactionRepo.findByAccountId(id);
+    }
+
+    @GetMapping("/transactions/{id}")
+    public ResponseEntity<?> getTransactionById(@PathVariable Long id) {
+        return transactionRepo.findByIdWithDetails(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -60,7 +65,6 @@ public class AccountController {
         return service.create(account, userId);
     }
 
-    // DEPÓSITO
     @PutMapping("/{id}/deposit")
     public Account deposit(@PathVariable Long id,
                            @RequestParam double amount,
@@ -68,7 +72,6 @@ public class AccountController {
         return service.deposit(id, amount, requesterId);
     }
 
-    // RETIRADA
     @PutMapping("/{id}/withdraw")
     public ResponseEntity<?> withdraw(@PathVariable Long id,
                         @RequestParam double amount,
@@ -80,7 +83,6 @@ public class AccountController {
         }
     }
 
-    // TRANSFERENCIA
     @PostMapping("/transfer")
     public ResponseEntity<?> transfer(@RequestParam Long fromId,
                                   @RequestParam Long toId,
@@ -97,7 +99,6 @@ public class AccountController {
         }
     }
 
-    // ELIMINAR CUENTA
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id,
                          @RequestParam Long requesterId) {
@@ -105,13 +106,11 @@ public class AccountController {
         return "Cuenta eliminada correctamente";
     }
 
-    // LÍMITE DE GASTO MENSUAL
     @PutMapping("/{id}/limite-gasto-mensual")
     public Account setLimiteGastoMensual(@PathVariable Long id, @RequestParam double limite) {
         return service.setLimiteGastoMensual(id, limite);
     }
 
-    // UMBRAL SALDO BAJO
     @PutMapping("/{id}/umbral-saldo-bajo")
     public Account setUmbralSaldoBajo(@PathVariable Long id, @RequestParam double umbral) {
         return service.setUmbralSaldoBajo(id, umbral);

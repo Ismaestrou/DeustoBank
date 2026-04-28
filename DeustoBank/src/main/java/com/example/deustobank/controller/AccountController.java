@@ -83,11 +83,14 @@ public class AccountController {
     // TRANSFERENCIA
     @PostMapping("/transfer")
     public ResponseEntity<?> transfer(@RequestParam Long fromId,
-                                      @RequestParam Long toId,
-                                      @RequestParam double amount,
-                                      @RequestParam Long requesterId) {
+                                  @RequestParam Long toId,
+                                  @RequestParam double amount,
+                                  @RequestParam Long requesterId) {
         try {
-            service.transfer(fromId, toId, amount, requesterId);
+            String alerta = service.transfer(fromId, toId, amount, requesterId);
+            if (alerta != null) {
+                return ResponseEntity.ok(alerta);
+            }
             return ResponseEntity.ok("Transferencia realizada correctamente");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

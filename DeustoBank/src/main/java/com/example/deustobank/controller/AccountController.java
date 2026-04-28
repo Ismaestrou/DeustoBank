@@ -70,10 +70,14 @@ public class AccountController {
 
     // RETIRADA
     @PutMapping("/{id}/withdraw")
-    public AccountResponse withdraw(@PathVariable Long id,
-                            @RequestParam double amount,
-                            @RequestParam Long requesterId) {
-        return service.withdraw(id, amount, requesterId);
+    public ResponseEntity<?> withdraw(@PathVariable Long id,
+                        @RequestParam double amount,
+                        @RequestParam Long requesterId) {
+        try {
+            return ResponseEntity.ok(service.withdraw(id, amount, requesterId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // TRANSFERENCIA

@@ -227,7 +227,7 @@ async function operar(tipo) {
             actualizarDatos();
         } else {
             const msg = await response.text();
-            alert(msg || "Error en operación");
+            alert("Error: " + msg);
         }
 
     } catch (e) {

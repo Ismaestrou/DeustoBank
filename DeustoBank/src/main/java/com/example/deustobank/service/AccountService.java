@@ -98,7 +98,7 @@ public class AccountService {
         if (acc.getLimiteGastoMensual() > 0) {
             double nuevoGasto = acc.getGastoMensualActual() + amount;
             if (nuevoGasto > acc.getLimiteGastoMensual()) {
-                throw new RuntimeException("Límite de gasto mensual superado");
+                throw new RuntimeException("No se puede realizar la retirada, debido a que ha superado el límite mensual");
             }
             acc.setGastoMensualActual(nuevoGasto);
         }

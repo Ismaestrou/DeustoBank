@@ -4,6 +4,8 @@ import com.example.deustobank.model.User;
 import com.example.deustobank.model.SystemStatsDTO;
 import com.example.deustobank.repository.UserRepository;
 import com.example.deustobank.service.AuthService;
+import com.example.deustobank.model.SuspiciousAlert;
+import com.example.deustobank.repository.SuspiciousAlertRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,9 @@ public class AdminController {
 
     @Autowired
     private TransactionRepository transactionRepo;
+
+    @Autowired
+    private SuspiciousAlertRepository alertRepo;
 
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(@RequestParam Long requesterId) {
@@ -98,6 +103,25 @@ public class AdminController {
         authService.checkAdmin(requesterId);
         SystemStatsDTO stats = accountService.getSystemStats();
         return ResponseEntity.ok(stats);
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<?> getAlerts(@RequestParam Long requesterId) {
+        authService.checkAdmin(requesterId);
+        return ResponseEntity.ok(alertRepo.findAllByOrderByCreatedAtDesc());
+    }
+
+    @PutMapping("/alerts/{id}/review")
+    public ResponseEntity<?> markAsReviewed(@PathVariable Long id, @RequestParam Long requesterId) {
+        authService.checkAdmin(requesterId);
+
+        SuspiciousAlert alert = alertRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Alerta no encontrada"));
+
+        alert.setReviewed(true);
+        alertRepo.save(alert);
+
+        return ResponseEntity.ok(Map.of("message", "Alerta marcada como revisada"));
     }
     @PutMapping("/users/{id}/reset-password")
     public ResponseEntity<?> resetPassword(@PathVariable Long id, @RequestParam Long requesterId) {

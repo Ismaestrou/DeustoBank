@@ -12,6 +12,7 @@ import com.example.deustobank.model.SystemStatsDTO;
 import com.example.deustobank.repository.AccountRepository;
 import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
+import com.example.deustobank.service.AlertService;
 
 
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,9 @@ public class AccountService {
 
     @Autowired
     private UserRepository userRepo;
+
+    @Autowired
+    private AlertService alertService;
 
     // OBTENER CUENTAS
 
@@ -78,7 +82,7 @@ public class AccountService {
         repo.save(acc);
 
         guardarTransaccion("DEPOSIT", amount, acc, before, after);
-
+        alertService.checkAndAlert(acc, amount);
         return acc;
     }
 
@@ -105,7 +109,7 @@ public class AccountService {
         acc.setBalance(after);
         repo.save(acc);
         guardarTransaccion("WITHDRAW", amount, acc, before, after);
-
+        alertService.checkAndAlert(acc, amount);
         return new AccountResponse(acc, comprobarSaldoBajo(acc));
     }
 
@@ -147,6 +151,8 @@ public class AccountService {
 
         guardarTransaccion("TRANSFER_OUT", amount, from, fromBefore, from.getBalance());
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
+        alertService.checkAndAlert(from, amount);
+        alertService.checkAndAlert(to, amount);
     }
 
     // ELIMINAR CUENTA

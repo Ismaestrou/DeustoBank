@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.deustobank.model.User;
 import com.example.deustobank.service.AuthService;
+import com.example.deustobank.service.TokenBlacklistService;
 
 @RestController
 @RequestMapping("/auth")
@@ -14,6 +15,9 @@ public class AuthController {
 
     @Autowired
     private AuthService service;
+
+    @Autowired
+    private TokenBlacklistService tokenBlacklist;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
@@ -45,5 +49,13 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestParam(required = false) String sessionToken) {
+        if (sessionToken != null && !sessionToken.isBlank()) {
+            tokenBlacklist.invalidate(sessionToken);
+        }
+        return ResponseEntity.ok(java.util.Map.of("message", "Sesión cerrada correctamente"));
     }
 }

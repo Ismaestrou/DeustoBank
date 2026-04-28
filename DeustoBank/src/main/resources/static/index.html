@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>DeustoBank</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -19,7 +23,6 @@
             <div id="tab-reg" class="btn" style="background:none; color:#666;" onclick="showRegister()">Nuevo Cliente</div>
         </div>
 
-        <!-- LOGIN -->
         <div id="login-section">
             <h2>Acceso Clientes</h2>
             <input type="text" id="login-dni" placeholder="DNI">
@@ -27,7 +30,6 @@
             <button class="btn btn-primary" onclick="loginReal()">Entrar</button>
         </div>
 
-        <!-- REGISTER -->
         <div id="register-section" style="display:none;">
             <h2>Crear Cuenta</h2>
             <input type="text" id="reg-name" placeholder="Nombre completo">
@@ -37,14 +39,11 @@
             <button class="btn btn-success" onclick="registrarReal()">Registrarme</button>
         </div>
 
-
-
     </div>
 </div>
 
 <script>
 
-// UI
 function showRegister() {
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('register-section').style.display = 'block';
@@ -55,7 +54,15 @@ function showLogin() {
     document.getElementById('register-section').style.display = 'none';
 }
 
-// LOGIN REAL
+(function checkAlreadyLoggedIn() {
+    const userId = sessionStorage.getItem('userId');
+    const role   = sessionStorage.getItem('userRole');
+    const token  = sessionStorage.getItem('sessionToken');
+    if (userId && token) {
+        window.location.replace(role === 'ADMIN' ? 'admin.html' : 'dashboard.html');
+    }
+})();
+
 async function loginReal() {
     const dni = document.getElementById('login-dni').value;
     const password = document.getElementById('login-password').value;
@@ -65,20 +72,22 @@ async function loginReal() {
         return;
     }
 
-    const response = await fetch(`/auth/login?dni=${dni}&password=${password}`, {
+    const response = await fetch(`/auth/login?dni=${encodeURIComponent(dni)}&password=${encodeURIComponent(password)}`, {
         method: 'POST'
     });
 
     if (response.ok) {
         const user = await response.json();
 
+        const sessionToken = crypto.randomUUID();
         sessionStorage.setItem('userId', user.id);
         sessionStorage.setItem('userRole', user.role);
+        sessionStorage.setItem('sessionToken', sessionToken);
 
         if (user.role === 'ADMIN') {
-            window.location.href = 'admin.html';
+            window.location.replace('admin.html');
         } else {
-            window.location.href = 'dashboard.html';
+            window.location.replace('dashboard.html');
         }
     } else {
         const msg = await response.text();
@@ -92,7 +101,6 @@ async function loginReal() {
     }
 }
 
-// REGISTER REAL
 async function registrarReal() {
     const user = {
         fullName: document.getElementById('reg-name').value,

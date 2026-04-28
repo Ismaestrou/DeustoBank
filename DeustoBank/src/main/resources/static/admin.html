@@ -3,33 +3,122 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Panel de Administración - DeustoBank</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modal-overlay.active {
+            display: flex;
+        }
+
+        #modal-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            max-width: 480px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+            position: relative;
+        }
+
+        #modal-box h3 {
+            margin-top: 0;
+            color: var(--deusto-blue);
+        }
+
+        #modal-box .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+        }
+
+        #modal-box .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        #modal-box .detail-label {
+            color: #666;
+        }
+
+        #modal-box .detail-value {
+            font-weight: 600;
+        }
+
+        #modal-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .role-select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
 
-    <header class="header">
+    <div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div id="modal-box">
+            <button id="modal-close-btn" onclick="cerrarModal()" aria-label="Cerrar">&times;</button>
+            <h3 id="modal-title">&#128196; Detalle de Transacción</h3>
+            <div id="modal-content">
+                <p>Cargando...</p>
+            </div>
+        </div>
+    </div>
+
+    <header class="header" style="position:relative;">
         <h1>DeustoBank - Administración</h1>
+        <button id="btn-logout" onclick="cerrarSesion()" style="position:absolute; right:20px; top:20px; background:rgba(255,255,255,0.2);
+               color:white; border:1px solid white; padding:6px 14px; cursor:pointer; border-radius:6px;">
+            Cerrar Sesión
+        </button>
     </header>
 
     <div class="main-container">
-        <!-- TARJETAS DE ESTADÍSTICAS -->
         <div class="section-card" style="margin-bottom: 24px;">
             <h2 style="margin-bottom: 20px;">Estadísticas del Sistema</h2>
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
 
-                <div style="flex:1; min-width:180px; background: var(--deusto-blue); color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                <div
+                    style="flex:1; min-width:180px; background: var(--deusto-blue); color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     <div style="font-size:2.4rem; font-weight:700;" id="stat-users">—</div>
                     <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;"> Usuarios Registrados</div>
                 </div>
 
-                <div style="flex:1; min-width:180px; background: #17a2b8; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                <div
+                    style="flex:1; min-width:180px; background: #17a2b8; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     <div style="font-size:2.4rem; font-weight:700;" id="stat-transactions">—</div>
-                    <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;">  Transacciones Totales</div>
+                    <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;"> Transacciones Totales</div>
                 </div>
 
-                <div style="flex:1; min-width:180px; background: #28a745; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                <div
+                    style="flex:1; min-width:180px; background: #28a745; color:white; border-radius:12px; padding:24px 28px; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     <div style="font-size:2.4rem; font-weight:700;" id="stat-balance">—</div>
                     <div style="margin-top:6px; font-size:0.95rem; opacity:0.9;"> Saldo Total del Sistema</div>
                 </div>
@@ -37,14 +126,16 @@
             </div>
         </div>
         <div class="section-card" style="margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px;">
                 <h2 style="border: none; margin: 0;">🚨 Alertas de Actividad Sospechosa</h2>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <label style="font-size: 0.9rem; color: #555;">
                         <input type="checkbox" id="toggle-reviewed" onchange="cargarAlertas()">
                         Mostrar revisadas
                     </label>
-                    <button class="btn btn-secondary" style="width:auto; padding: 6px 14px;" onclick="cargarAlertas()">🔄 Actualizar</button>
+                    <button class="btn btn-secondary" style="width:auto; padding: 6px 14px;"
+                        onclick="cargarAlertas()">🔄 Actualizar</button>
                 </div>
             </div>
             <div id="alerts-container">
@@ -55,8 +146,14 @@
             <div
                 style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 20px;">
                 <h2 style="border: none; margin: 0;">Usuarios Registrados</h2>
-                <button class="btn btn-secondary" style="width: auto; padding: 8px 15px;"
-                    onclick="window.location.href='index.html'">Volver al inicio</button>
+                <div style="display:flex; gap:10px;">
+                    <button id="btn-export-csv" class="btn btn-secondary" style="width:auto; padding:8px 15px;"
+                        onclick="exportarCSV()">
+                        &#128190; Exportar CSV
+                    </button>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 15px;"
+                        onclick="window.location.href='index.html'">Volver al inicio</button>
+                </div>
             </div>
 
             <div style="overflow-x: auto;">
@@ -70,7 +167,7 @@
                             <th style="padding: 12px; text-align: left;">Rol</th>
                             <th style="padding: 12px; text-align: left;">Estado</th>
                             <th style="padding: 12px; text-align: left;">Saldo</th>
-                            <th style="padding: 12px; text-align: left;">Transacciones</th>
+                            <th style="padding: 12px; text-align: left;">Txns</th>
                             <th style="padding: 12px; text-align: left;">Acción</th>
                             <th style="padding: 12px; text-align: left;">Contraseña</th>
                         </tr>
@@ -83,86 +180,169 @@
     </div>
 
     <script>
+        (function guardAdmin() {
+            const uid = sessionStorage.getItem('userId');
+            const token = sessionStorage.getItem('sessionToken');
+            const role = sessionStorage.getItem('userRole');
+            if (!uid || !token || role !== 'ADMIN') {
+                window.location.replace('index.html');
+            }
+            history.replaceState({ protected: true }, '', 'admin.html');
+        })();
+
         document.addEventListener('DOMContentLoaded', () => {
             cargarEstadisticas();
             cargarAlertas();
             cargarUsuarios();
         });
 
-        async function cargarUsuarios() {
+        async function cerrarSesion() {
+            const token = sessionStorage.getItem('sessionToken');
             try {
-                const requesterId = sessionStorage.getItem('userId');
-                if (!requesterId) {
-                    alert('Debes iniciar sesión primero para acceder al panel de administración.');
-                    window.location.href = 'index.html';
+                await fetch(`/auth/logout?sessionToken=${encodeURIComponent(token || '')}`, { method: 'POST' });
+            } catch (e) { console.warn('Logout backend error', e); }
+            sessionStorage.clear();
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('sessionToken');
+            history.replaceState(null, '', 'index.html');
+            window.location.replace('index.html');
+        }
+
+        async function exportarCSV() {
+            const requesterId = sessionStorage.getItem('userId');
+            const btn = document.getElementById('btn-export-csv');
+            btn.disabled = true;
+            btn.textContent = 'Exportando...';
+            try {
+                const res = await fetch(`/api/admin/users/export/csv?requesterId=${requesterId}`);
+                if (!res.ok) { alert('Error al exportar'); return; }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'usuarios_deustobank.csv';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('Error de conexión al exportar');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '&#128190; Exportar CSV';
+            }
+        }
+
+        async function cambiarRol(userId, nuevoRol) {
+            const requesterId = sessionStorage.getItem('userId');
+            if (!confirm(`¿Cambiar rol del usuario ${userId} a ${nuevoRol}?`)) {
+                cargarUsuarios(); return;
+            }
+            try {
+                const res = await fetch(
+                    `/api/admin/users/${userId}/role?newRole=${nuevoRol}&requesterId=${requesterId}`,
+                    { method: 'PATCH' }
+                );
+                if (res.ok) {
+                    if (String(userId) === String(requesterId)) {
+                        sessionStorage.setItem('userRole', nuevoRol);
+                    }
+                    cargarUsuarios();
+                } else {
+                    const msg = await res.text();
+                    alert('Error: ' + msg);
+                    cargarUsuarios();
+                }
+            } catch (e) {
+                alert('Error de conexión');
+                cargarUsuarios();
+            }
+        }
+
+        async function verTransaccion(txId) {
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            overlay.classList.add('active');
+            content.innerHTML = '<p style="text-align:center;color:#888;">Cargando...</p>';
+            try {
+                const res = await fetch(`/accounts/transactions/${txId}`);
+                if (!res.ok) { content.innerHTML = '<p style="color:red;">Transacción no encontrada.</p>'; return; }
+                const t = await res.json();
+                const tipo = { DEPOSIT: 'Ingreso', WITHDRAW: 'Retirada', TRANSFER_IN: 'Transferencia recibida', TRANSFER_OUT: 'Transferencia enviada' };
+                const fecha = new Date(t.date).toLocaleString('es-ES');
+                content.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">#${t.id}</span></div>
+                    <div class="detail-row"><span class="detail-label">Tipo</span><span class="detail-value">${tipo[t.type] || t.type}</span></div>
+                    <div class="detail-row"><span class="detail-label">Importe</span><span class="detail-value">${t.amount.toFixed(2)} €</span></div>
+                    <div class="detail-row"><span class="detail-label">Saldo antes</span><span class="detail-value">${t.balanceBefore.toFixed(2)} €</span></div>
+                    <div class="detail-row"><span class="detail-label">Saldo después</span><span class="detail-value">${t.balanceAfter.toFixed(2)} €</span></div>
+                    <div class="detail-row"><span class="detail-label">Fecha</span><span class="detail-value">${fecha}</span></div>
+                    <div class="detail-row"><span class="detail-label">Cuenta ID</span><span class="detail-value">${t.account ? t.account.id : '—'}</span></div>
+                    <div class="detail-row"><span class="detail-label">Titular</span><span class="detail-value">${t.account ? t.account.ownerName : '—'}</span></div>`;
+            } catch (e) {
+                content.innerHTML = '<p style="color:red;">Error de conexión.</p>';
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+        }
+        document.getElementById('modal-overlay').addEventListener('click', function (e) {
+            if (e.target === this) cerrarModal();
+        });
+
+        async function cargarUsuarios() {
+            const requesterId = sessionStorage.getItem('userId');
+            try {
+                const response = await fetch('/api/admin/users?requesterId=' + requesterId);
+                if (!response.ok) { alert('Error al obtener la lista de usuarios'); return; }
+                const users = await response.json();
+                const tableBody = document.getElementById('usuarios-table-body');
+                tableBody.innerHTML = '';
+
+                if (users.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No hay usuarios registrados.</td></tr>';
                     return;
                 }
 
-                const response = await fetch('/api/admin/users?requesterId=' + requesterId);
+                for (const user of users) {
+                    let totalBalance = 0, transactions = 0;
+                    try {
+                        const sr = await fetch(`/api/admin/users/${user.id}/summary?requesterId=${requesterId}`);
+                        if (sr.ok) { const s = await sr.json(); totalBalance = s.totalBalance; transactions = s.transactions; }
+                    } catch (e) { }
 
-                if (response.ok) {
-                    const users = await response.json();
-                    const tableBody = document.getElementById('usuarios-table-body');
-                    tableBody.innerHTML = '';
+                    const tr = document.createElement('tr');
+                    tr.style.borderBottom = '1px solid #ddd';
 
-                    if (users.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No hay usuarios registrados.</td></tr>';
-                        return;
-                    }
+                    const roleSelect = `
+                        <select class="role-select" onchange="cambiarRol(${user.id}, this.value)">
+                            <option value="USER"  ${user.role === 'USER' ? 'selected' : ''}>USER</option>
+                            <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                        </select>`;
 
-                    for (const user of users) {
+                    const statusBadge = user.active
+                        ? '<span style="background:#28a745;color:white;padding:3px 8px;border-radius:12px;">ACTIVO</span>'
+                        : '<span style="background:#dc3545;color:white;padding:3px 8px;border-radius:12px;">BLOQUEADO</span>';
 
-                        // 🔥 LLAMADA NUEVA AL BACKEND
-                        let totalBalance = 0;
-                        let transactions = 0;
+                    const btnEstado = user.active
+                        ? `<button onclick="cambiarEstado(${user.id},true)"  style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">Bloquear</button>`
+                        : `<button onclick="cambiarEstado(${user.id},false)" style="background:#28a745;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">Desbloquear</button>`;
 
-                        try {
-                            const summaryRes = await fetch(`/api/admin/users/${user.id}/summary?requesterId=${requesterId}`);
-                            if (summaryRes.ok) {
-                                const summary = await summaryRes.json();
-                                totalBalance = summary.totalBalance;
-                                transactions = summary.transactions;
-                            }
-                        } catch (e) {
-                            console.error("Error obteniendo resumen", e);
-                        }
-
-                        const tr = document.createElement('tr');
-                        tr.style.borderBottom = '1px solid #ddd';
-
-                        const roleFormatted = user.role === 'ADMIN' ?
-                            '<span style="background: var(--deusto-blue); color: white; padding: 3px 8px; border-radius: 12px;">ADMIN</span>' :
-                            '<span style="background: #6c757d; color: white; padding: 3px 8px; border-radius: 12px;">USER</span>';
-
-                        const statusFormatted = user.active ?
-                            '<span style="background: #28a745; color: white; padding: 3px 8px; border-radius: 12px;">ACTIVO</span>' :
-                            '<span style="background: #dc3545; color: white; padding: 3px 8px; border-radius: 12px;">BLOQUEADO</span>';
-
-                        const buttonAction = user.active ?
-                            `<button onclick="cambiarEstado(${user.id}, true)" style="background: #dc3545; color: white;">Bloquear</button>` :
-                            `<button onclick="cambiarEstado(${user.id}, false)" style="background: #28a745; color: white;">Desbloquear</button>`;
-
-                        // 🔥 NUEVAS COLUMNAS
-                        tr.innerHTML = `
-                            <td>${user.id}</td>
-                            <td><b>${user.fullName}</b></td>
-                            <td>${user.dni}</td>
-                            <td>${user.email}</td>
-                            <td>${roleFormatted}</td>
-                            <td>${statusFormatted}</td>
-                            <td><b>${totalBalance.toFixed(2)} €</b></td>
-                            <td>${transactions}</td>
-                            <td>${buttonAction}</td>
-                            <td><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>
-                            `;
-
-                        tableBody.appendChild(tr);
-                    }
-
-                } else {
-                    alert('Error al obtener la lista de usuarios');
+                    tr.innerHTML = `
+                        <td style="padding:10px;">${user.id}</td>
+                        <td style="padding:10px;"><b>${user.fullName}</b></td>
+                        <td style="padding:10px;">${user.dni}</td>
+                        <td style="padding:10px;">${user.email}</td>
+                        <td style="padding:10px;">${roleSelect}</td>
+                        <td style="padding:10px;">${statusBadge}</td>
+                        <td style="padding:10px;"><b>${totalBalance.toFixed(2)} €</b></td>
+                        <td style="padding:10px;">${transactions}</td>
+                        <td style="padding:10px;">${btnEstado}</td>
+                        <td style="padding:10px;"><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>`;
+                    tableBody.appendChild(tr);
                 }
-
             } catch (e) {
                 console.error(e);
                 alert('Error de conexión servidor');
@@ -171,120 +351,77 @@
 
         async function cambiarEstado(userId, currentStatus) {
             const requesterId = sessionStorage.getItem('userId');
-            const accion = currentStatus ? "bloquear" : "desbloquear";
-
-            if (confirm(`¿Estás seguro de que quieres ${accion} a este usuario?`)) {
-                try {
-                    const response = await fetch(`/api/admin/users/${userId}/status?requesterId=${requesterId}`, {
-                        method: 'PUT'
-                    });
-
-                    if (response.ok) {
-                        cargarUsuarios();
-                    } else {
-                        alert("Error al cambiar estado");
-                    }
-
-                } catch (e) {
-                    console.error(e);
-                    alert('Error de conexión');
-                }
-            }
+            const accion = currentStatus ? 'bloquear' : 'desbloquear';
+            if (!confirm(`¿Estás seguro de que quieres ${accion} a este usuario?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${userId}/status?requesterId=${requesterId}`, { method: 'PUT' });
+                if (res.ok) cargarUsuarios(); else alert('Error al cambiar estado');
+            } catch (e) { alert('Error de conexión'); }
         }
+
         async function resetPassword(userId) {
             const requesterId = sessionStorage.getItem('userId');
-
-            if (!confirm("¿Resetear la contraseña de este usuario?")) return;
-
+            if (!confirm('¿Resetear la contraseña de este usuario?')) return;
             try {
-                const response = await fetch(`/api/admin/users/${userId}/reset-password?requesterId=${requesterId}`, {
-                    method: 'PUT'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    alert(`Contraseña reseteada correctamente.\nNueva contraseña temporal: ${data.nuevaPassword}`);
-                } else {
-                    alert("Error al resetear la contraseña");
-                }
-
-            } catch (e) {
-                alert("Error de conexión");
-            }
+                const res = await fetch(`/api/admin/users/${userId}/reset-password?requesterId=${requesterId}`, { method: 'PUT' });
+                if (res.ok) { const d = await res.json(); alert(`Nueva contraseña temporal: ${d.nuevaPassword}`); }
+                else alert('Error al resetear la contraseña');
+            } catch (e) { alert('Error de conexión'); }
         }
+
         async function cargarEstadisticas() {
             const requesterId = sessionStorage.getItem('userId');
             if (!requesterId) return;
-
             try {
                 const res = await fetch('/api/admin/stats?requesterId=' + requesterId);
                 if (!res.ok) return;
-
                 const stats = await res.json();
-                document.getElementById('stat-users').textContent        = stats.totalUsers;
+                document.getElementById('stat-users').textContent = stats.totalUsers;
                 document.getElementById('stat-transactions').textContent = stats.totalTransactions;
-                document.getElementById('stat-balance').textContent      = stats.totalBalance.toFixed(2) + ' €';
-            } catch (e) {
-                console.error('Error al cargar estadísticas', e);
-            }
+                document.getElementById('stat-balance').textContent = stats.totalBalance.toFixed(2) + ' €';
+            } catch (e) { console.error('Error estadísticas', e); }
         }
+
         async function cargarAlertas() {
             const requesterId = sessionStorage.getItem('userId');
             if (!requesterId) return;
-
             const mostrarRevisadas = document.getElementById('toggle-reviewed').checked;
             const container = document.getElementById('alerts-container');
-
             try {
                 const res = await fetch('/api/admin/alerts?requesterId=' + requesterId);
                 if (!res.ok) { container.innerHTML = '<p style="color:red;">Error al cargar alertas.</p>'; return; }
-
                 let alerts = await res.json();
                 if (!mostrarRevisadas) alerts = alerts.filter(a => !a.reviewed);
-
-                if (alerts.length === 0) {
-                    container.innerHTML = '<p style="color:#28a745; text-align:center;">✅ No hay alertas pendientes.</p>';
-                    return;
-                }
-
+                if (alerts.length === 0) { container.innerHTML = '<p style="color:#28a745;text-align:center;">✅ No hay alertas pendientes.</p>'; return; }
                 container.innerHTML = alerts.map(a => {
-                    const typeLabel   = a.alertType === 'HIGH_AMOUNT' ? '💰 Importe alto' : '⚡ Alta frecuencia';
-                    const typeBg      = a.alertType === 'HIGH_AMOUNT' ? '#dc3545' : '#fd7e14';
+                    const typeLabel = a.alertType === 'HIGH_AMOUNT' ? '💰 Importe alto' : '⚡ Alta frecuencia';
+                    const typeBg = a.alertType === 'HIGH_AMOUNT' ? '#dc3545' : '#fd7e14';
                     const statusBadge = a.reviewed
-                        ? '<span style="background:#28a745; color:white; padding:2px 10px; border-radius:12px; font-size:0.8rem;">Revisada</span>'
-                        : '<span style="background:#dc3545; color:white; padding:2px 10px; border-radius:12px; font-size:0.8rem;">Pendiente</span>';
+                        ? '<span style="background:#28a745;color:white;padding:2px 10px;border-radius:12px;font-size:0.8rem;">Revisada</span>'
+                        : '<span style="background:#dc3545;color:white;padding:2px 10px;border-radius:12px;font-size:0.8rem;">Pendiente</span>';
                     const reviewBtn = !a.reviewed
-                        ? `<button onclick="marcarRevisada(${a.id})" style="background:#28a745; color:white; border:none; padding:6px 14px; border-radius:6px; cursor:pointer;">✔ Marcar revisada</button>`
-                        : '';
-
-                    return `
-                        <div style="border-left: 4px solid ${typeBg}; background:#f8f9fa; border-radius:8px; padding:14px 18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                            <div>
-                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
-                                    <span style="background:${typeBg}; color:white; padding:2px 10px; border-radius:12px; font-size:0.8rem;">${typeLabel}</span>
-                                    ${statusBadge}
-                                    <span style="color:#888; font-size:0.8rem;">${new Date(a.createdAt).toLocaleString('es-ES')}</span>
-                                </div>
-                                <div style="color:#333;">${a.description}</div>
+                        ? `<button onclick="marcarRevisada(${a.id})" style="background:#28a745;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">✔ Marcar revisada</button>` : '';
+                    return `<div style="border-left:4px solid ${typeBg};background:#f8f9fa;border-radius:8px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                                <span style="background:${typeBg};color:white;padding:2px 10px;border-radius:12px;font-size:0.8rem;">${typeLabel}</span>
+                                ${statusBadge}
+                                <span style="color:#888;font-size:0.8rem;">${new Date(a.createdAt).toLocaleString('es-ES')}</span>
                             </div>
-                            <div>${reviewBtn}</div>
-                        </div>`;
+                            <div style="color:#333;">${a.description}</div>
+                        </div>
+                        <div>${reviewBtn}</div>
+                    </div>`;
                 }).join('');
-
-            } catch (e) {
-                container.innerHTML = '<p style="color:red;">Error de conexión.</p>';
-            }
+            } catch (e) { container.innerHTML = '<p style="color:red;">Error de conexión.</p>'; }
         }
 
         async function marcarRevisada(alertId) {
             const requesterId = sessionStorage.getItem('userId');
             try {
                 const res = await fetch(`/api/admin/alerts/${alertId}/review?requesterId=${requesterId}`, { method: 'PUT' });
-                if (res.ok) cargarAlertas();
-                else alert('Error al marcar la alerta');
-            } catch (e) {
-                alert('Error de conexión');
-            }
+                if (res.ok) cargarAlertas(); else alert('Error al marcar la alerta');
+            } catch (e) { alert('Error de conexión'); }
         }
     </script>
 

@@ -336,7 +336,7 @@
                 return;
             }
 
-            const response = await fetch(`/accounts/${id}/limite-gasto-mensual?limite=${limite}`, {
+            const response = await fetch(`/accounts/${id}/limite?limite=${limite}`, {
                 method: 'PUT'
             });
 
@@ -373,7 +373,7 @@
                 return;
             }
 
-            const response = await fetch(`/accounts/${id}/umbral-saldo-bajo?umbral=${umbral}`, {
+            const response = await fetch(`/accounts/${id}/umbral?umbral=${umbral}`, {
                 method: 'PUT'
             });
 

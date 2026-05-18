@@ -124,6 +124,27 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("nuevaPassword", nuevaPassword));
     }
 
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id,
+                                        @RequestParam Long requesterId,
+                                        @RequestBody Map<String, String> datos) {
+        authService.checkAdmin(requesterId);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+ 
+        if (datos.containsKey("fullName") && !datos.get("fullName").isBlank())
+            user.setFullName(datos.get("fullName"));
+        if (datos.containsKey("email") && !datos.get("email").isBlank())
+            user.setEmail(datos.get("email"));
+        if (datos.containsKey("phone"))
+            user.setPhone(datos.get("phone"));
+        if (datos.containsKey("dni") && !datos.get("dni").isBlank())
+            user.setDni(datos.get("dni"));
+ 
+        userRepository.save(user);
+        return ResponseEntity.ok(user);
+    }
+ 
     @GetMapping("/users/export/csv")
     public ResponseEntity<byte[]> exportUsersCsv(@RequestParam Long requesterId) {
         authService.checkAdmin(requesterId);

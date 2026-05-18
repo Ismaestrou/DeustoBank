@@ -92,6 +92,37 @@
         </div>
     </div>
 
+    <!-- HU6 T1 - Modal edición de usuario -->
+    <div id="edit-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+         background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; border-radius:12px; padding:30px; width:420px; max-width:95%; position:relative;">
+            <button onclick="cerrarEditModal()" style="position:absolute; top:12px; right:16px; background:none;
+                    border:none; font-size:1.4rem; cursor:pointer;">&times;</button>
+            <h3 style="margin-bottom:20px;">&#9998; Editar Usuario</h3>
+            <input type="hidden" id="edit-user-id">
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px;">Nombre completo</label>
+                <input type="text" id="edit-fullName" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px;">Email</label>
+                <input type="email" id="edit-email" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px;">DNI</label>
+                <input type="text" id="edit-dni" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; margin-bottom:4px;">Teléfono</label>
+                <input type="text" id="edit-phone" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;">
+            </div>
+            <button onclick="guardarEdicionUsuario()" style="width:100%; padding:10px; background:#1a3c5e;
+                    color:white; border:none; border-radius:8px; font-size:1rem; cursor:pointer;">
+                Guardar cambios
+            </button>
+        </div>
+    </div>
+
     <header class="header" style="position:relative;">
         <h1>DeustoBank - Administración</h1>
         <button id="btn-logout" onclick="cerrarSesion()" style="position:absolute; right:20px; top:20px; background:rgba(255,255,255,0.2);
@@ -340,12 +371,54 @@
                         <td style="padding:10px;"><b>${totalBalance.toFixed(2)} €</b></td>
                         <td style="padding:10px;">${transactions}</td>
                         <td style="padding:10px;">${btnEstado}</td>
-                        <td style="padding:10px;"><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>`;
+                        <td style="padding:10px;"><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>
+                        <td style="padding:10px;"><button onclick="abrirEditModal(${user.id},'${user.fullName}','${user.email}','${user.dni}','${user.phone || ''}')" style="background:#1a3c5e;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">&#9998; Editar</button></td>`;
                     tableBody.appendChild(tr);
                 }
             } catch (e) {
                 console.error(e);
                 alert('Error de conexión servidor');
+            }
+        }
+
+        // HU6 T1 - Funciones del modal de edición de usuario
+        function abrirEditModal(id, fullName, email, dni, phone) {
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-fullName').value = fullName;
+            document.getElementById('edit-email').value = email;
+            document.getElementById('edit-dni').value = dni;
+            document.getElementById('edit-phone').value = phone;
+            document.getElementById('edit-modal-overlay').style.display = 'flex';
+        }
+
+        function cerrarEditModal() {
+            document.getElementById('edit-modal-overlay').style.display = 'none';
+        }
+
+        async function guardarEdicionUsuario() {
+            const requesterId = sessionStorage.getItem('userId');
+            const id = document.getElementById('edit-user-id').value;
+            const datos = {
+                fullName: document.getElementById('edit-fullName').value,
+                email:    document.getElementById('edit-email').value,
+                dni:      document.getElementById('edit-dni').value,
+                phone:    document.getElementById('edit-phone').value
+            };
+            try {
+                const res = await fetch(`/api/admin/users/${id}?requesterId=${requesterId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+                if (res.ok) {
+                    cerrarEditModal();
+                    cargarUsuarios();
+                    alert('Usuario actualizado correctamente');
+                } else {
+                    alert('Error al actualizar el usuario');
+                }
+            } catch (e) {
+                alert('Error de conexión');
             }
         }
 

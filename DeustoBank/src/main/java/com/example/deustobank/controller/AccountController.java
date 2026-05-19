@@ -41,28 +41,53 @@ public class AccountController {
     @Autowired
     private TransactionRepository transactionRepo;
  
+    /**
+     * @brief GET /accounts — Obtiene todas las cuentas del sistema.
+     * @return Lista de todas las cuentas.
+    */
+
     @Autowired
     private PdfService pdfService;
 
-    // Obtiene todas las cuentas del sistema
     @GetMapping
     public List<Account> getAll() {
         return service.getAll();
     }
  
-    // Obtiene las cuentas de un usuario específico
+    /**
+     * @brief GET /accounts/user/{userId} — Obtiene las cuentas de un usuario.
+     * @param userId ID del usuario.
+     * @return Lista de cuentas del usuario.
+    */
+
     @GetMapping("/user/{userId}")
     public List<Account> getByUser(@PathVariable Long userId) {
         return service.getAccountsByUser(userId);
     }
  
-    // Obtiene detalles de una cuenta por ID
+    /**
+     * @brief GET /accounts/{id} — Obtiene una cuenta por su ID.
+     * @param id ID de la cuenta.
+     * @return La cuenta encontrada.
+    */
+
     @GetMapping("/{id}")
     public Account getById(@PathVariable Long id) {
         return service.getById(id);
     }
  
-    // Obtiene historial de transacciones con opción de filtro de fechas
+    /**
+     * @brief GET /accounts/{id}/transactions — Obtiene el historial de transacciones de una cuenta.
+     *
+     * Soporta filtrado por rango de fechas mediante los parámetros opcionales {@code from} y {@code to}.
+     *
+     * @param id ID de la cuenta.
+     * @param requesterId ID del usuario que solicita el historial (debe ser el propietario).
+     * @param from Fecha inicio del filtro (formato: yyyy-MM-dd), opcional.
+     * @param to Fecha fin del filtro (formato: yyyy-MM-dd), opcional.
+     * @return Lista de transacciones o 403 si no tiene permisos.
+    */
+
     @GetMapping("/{id}/transactions")
     public ResponseEntity<?> getTransactions(@PathVariable Long id,
             @RequestParam Long requesterId,
@@ -80,7 +105,12 @@ public class AccountController {
         return ResponseEntity.ok(transactionRepo.findByAccountIdOrderByDateDesc(id));
     }
  
-    // Obtiene detalle de una transacción específica por ID
+    /**
+     * @brief GET /accounts/transactions/{id} — Obtiene el detalle de una transacción.
+     * @param id ID de la transacción.
+     * @return La transacción encontrada o 404 si no existe.
+    */
+
     @GetMapping("/transactions/{id}")
     public ResponseEntity<?> getTransactionById(@PathVariable Long id) {
         return transactionRepo.findByIdWithDetails(id)
@@ -88,14 +118,27 @@ public class AccountController {
                 .orElse(ResponseEntity.notFound().build());
     }
  
-    // Crea una nueva cuenta bancaria
+    /**
+     * @brief POST /accounts — Crea una nueva cuenta bancaria.
+     * @param account Datos de la cuenta (body JSON).
+     * @param userId ID del usuario propietario.
+     * @return La cuenta creada.
+    */
+
     @PostMapping
     public Account create(@Valid @RequestBody Account account,
                           @RequestParam Long userId) {
         return service.create(account, userId);
     }
  
-    // Realiza un depósito en una cuenta
+    /**
+     * @brief PUT /accounts/{id}/deposit — Realiza un ingreso en una cuenta.
+     * @param id ID de la cuenta.
+     * @param amount Cantidad a ingresar.
+     * @param requesterId ID del usuario que realiza el ingreso.
+     * @return La cuenta actualizada o 400 si hay error.
+    */
+
     @PutMapping("/{id}/deposit")
     public ResponseEntity<?> deposit(@PathVariable Long id,
                                     @RequestParam double amount,
@@ -107,7 +150,14 @@ public class AccountController {
         }
     }
  
-    // Realiza una retirada de una cuenta
+    /**
+     * @brief PUT /accounts/{id}/withdraw — Realiza una retirada de fondos.
+     * @param id ID de la cuenta.
+     * @param amount Cantidad a retirar.
+     * @param requesterId ID del usuario que realiza la retirada.
+     * @return La cuenta actualizada o 400 con mensaje de error.
+    */
+
     @PutMapping("/{id}/withdraw")
     public ResponseEntity<?> withdraw(@PathVariable Long id,
                         @RequestParam double amount,
@@ -119,7 +169,15 @@ public class AccountController {
         }
     }
  
-    // Realiza una transferencia entre cuentas
+    /**
+     * @brief POST /accounts/transfer — Realiza una transferencia entre cuentas.
+     * @param fromId ID de la cuenta origen.
+     * @param toId ID de la cuenta destino.
+     * @param amount Cantidad a transferir.
+     * @param requesterId ID del usuario que realiza la transferencia.
+     * @return Confirmación de la operación, con alerta de saldo bajo si aplica.
+    */
+
     @PostMapping("/transfer")
     public ResponseEntity<?> transfer(@RequestParam Long fromId,
                                     @RequestParam Long toId,
@@ -137,7 +195,13 @@ public class AccountController {
         }
     }
  
-    // Elimina una cuenta bancaria y su historial
+    /**
+     * @brief DELETE /accounts/{id} — Elimina una cuenta bancaria.
+     * @param id ID de la cuenta a eliminar.
+     * @param requesterId ID del usuario que solicita la eliminación.
+     * @return Mensaje de confirmación.
+    */
+
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id,
                          @RequestParam Long requesterId) {
@@ -145,19 +209,30 @@ public class AccountController {
         return "Cuenta eliminada correctamente";
     }
  
-    // Configura el límite de gasto mensual
+    /**
+     * @brief PUT /accounts/{id}/limite — Establece el límite de gasto mensual.
+     * @param id ID de la cuenta.
+     * @param limite Límite en euros.
+     * @return La cuenta actualizada.
+    */
+
     @PutMapping("/{id}/limite")
     public Account setLimiteGastoMensual(@PathVariable Long id, @RequestParam double limite) {
         return service.setLimiteGastoMensual(id, limite);
     }
  
-    // Configura el umbral de saldo bajo
+    /**
+     * @brief PUT /accounts/{id}/umbral — Establece el umbral de aviso de saldo bajo.
+     * @param id ID de la cuenta.
+     * @param umbral Umbral en euros.
+     * @return La cuenta actualizada.
+    */
+
     @PutMapping("/{id}/umbral")
     public Account setUmbralSaldoBajo(@PathVariable Long id, @RequestParam double umbral) {
         return service.setUmbralSaldoBajo(id, umbral);
     }
 
-    // Genera y descarga el extracto bancario en PDF
     @GetMapping("/{id}/statement/pdf")
     public ResponseEntity<byte[]> getPdfStatement(@PathVariable Long id, @RequestParam Long requesterId) {
         Account acc = service.getById(id);

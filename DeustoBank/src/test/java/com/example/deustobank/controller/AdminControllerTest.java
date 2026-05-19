@@ -143,4 +143,87 @@ class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Alerta marcada como revisada"));
     }
+
+    @Test
+    void getAlerts_Success() throws Exception {
+
+        doNothing().when(authService).checkAdmin(1L);
+
+        SuspiciousAlert alert = new SuspiciousAlert();
+        alert.setId(1L);
+
+        when(alertRepo.findAll()).thenReturn(List.of(alert));
+
+        mockMvc.perform(get("/api/admin/alerts")
+                .param("requesterId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void resetPassword_Success() throws Exception {
+
+        doNothing().when(authService).checkAdmin(1L);
+
+        when(authService.resetPassword(2L))
+                .thenReturn("Deusto1!");
+
+        mockMvc.perform(put("/api/admin/users/2/reset-password")
+                .param("requesterId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.newPassword").value("Deusto1!"));
+    }
+
+    @Test
+    void getDebtors_Success() throws Exception {
+
+        doNothing().when(authService).checkAdmin(1L);
+
+        when(userRepository.findAll()).thenReturn(List.of(testUser));
+
+        mockMvc.perform(get("/api/admin/users/debtors")
+                .param("requesterId", "1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getUserSummary_Success() throws Exception {
+
+        doNothing().when(authService).checkAdmin(1L);
+
+        when(userRepository.findById(2L))
+                .thenReturn(Optional.of(testUser));
+
+        when(accountService.getTotalBalanceByUser(2L))
+                .thenReturn(500.0);
+
+        when(transactionRepo.countByAccountUserId(2L))
+                .thenReturn(10L);
+
+        mockMvc.perform(get("/api/admin/users/2/summary")
+                .param("requesterId", "1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateUser_Success() throws Exception {
+
+        doNothing().when(authService).checkAdmin(1L);
+
+        when(userRepository.findById(2L))
+                .thenReturn(Optional.of(testUser));
+
+        String json = """
+        {
+            "fullName":"Nuevo Nombre",
+            "email":"nuevo@test.com"
+        }
+        """;
+
+        mockMvc.perform(put("/api/admin/users/2")
+                .param("requesterId", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andExpect(status().isOk());
+    }
 }

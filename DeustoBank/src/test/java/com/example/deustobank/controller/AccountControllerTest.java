@@ -1,5 +1,6 @@
 package com.example.deustobank.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -174,10 +175,93 @@ class AccountControllerTest {
     void getTransactions_Success() throws Exception {
         Transaction t = new Transaction();
         t.setId(100L);
-        when(transactionRepo.findByAccountId(10L)).thenReturn(List.of(t));
+        when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(t));
 
         mockMvc.perform(get("/accounts/10/transactions"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(100));
+    }
+
+    @Test
+    void delete_Success() throws Exception {
+
+        doNothing().when(accountService).deleteAccount(10L, 1L);
+
+        mockMvc.perform(delete("/accounts/10")
+                .param("requesterId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Cuenta eliminada correctamente"));
+    }
+
+    @Test
+    void transfer_Error() throws Exception {
+
+        when(accountService.transfer(anyLong(), anyLong(), anyDouble(), anyLong()))
+                .thenThrow(new RuntimeException("Error transferencia"));
+
+        mockMvc.perform(post("/accounts/transfer")
+                .param("fromId", "10")
+                .param("toId", "20")
+                .param("amount", "30")
+                .param("requesterId", "1"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Error transferencia"));
+    }
+
+    @Test
+    void create_Success() throws Exception {
+
+        when(accountService.create(any(Account.class), eq(1L)))
+                .thenReturn(account);
+
+        mockMvc.perform(post("/accounts")
+                .param("userId", "1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(account)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10));
+    }
+
+    @Test
+    void getTransactionById_Success() throws Exception {
+
+        Transaction t = new Transaction();
+        t.setId(100L);
+
+        when(transactionRepo.findByIdWithDetails(100L))
+                .thenReturn(Optional.of(t));
+
+        mockMvc.perform(get("/accounts/transactions/100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(100));
+    }
+
+    @Test
+    void getTransactionById_NotFound() throws Exception {
+
+        when(transactionRepo.findByIdWithDetails(100L))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/accounts/transactions/100"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getTransactions_WithDates() throws Exception {
+
+        Transaction t = new Transaction();
+        t.setId(200L);
+
+        when(transactionRepo.findByAccountIdAndDateBetween(
+                eq(10L),
+                any(),
+                any()))
+                .thenReturn(List.of(t));
+
+        mockMvc.perform(get("/accounts/10/transactions")
+                .param("from", "2026-01-01")
+                .param("to", "2026-12-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(200));
     }
 }

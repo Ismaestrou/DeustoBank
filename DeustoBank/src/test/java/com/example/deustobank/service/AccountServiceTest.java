@@ -177,8 +177,8 @@ class AccountServiceTest {
     void deleteAccount_Success() {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
-        when(transactionRepo.findByAccountId(10L)).thenReturn(List.of(new Transaction()));
-
+        when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(new Transaction()));
+        
         assertDoesNotThrow(() -> accountService.deleteAccount(10L, 1L));
         verify(transactionRepo).deleteAll(anyList());
         verify(accountRepo).delete(account);

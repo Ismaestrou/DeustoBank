@@ -45,6 +45,8 @@ public class AccountService {
     private AlertService alertService;
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    @Autowired
+    private CategoryService categoryService;
 
     /**
      * @brief Obtiene todas las cuentas del sistema.
@@ -106,7 +108,7 @@ public class AccountService {
      * @throws RuntimeException si la cantidad es inválida o el usuario no tiene acceso.
     */
 
-    public Account deposit(Long id, double amount, Long requesterId) {
+    public Account deposit(Long id, double amount, Long requesterId,String concepto) {
         Account acc = validarCuentaActiva(id);
         checkAccess(acc, requesterId);
  
@@ -120,7 +122,7 @@ public class AccountService {
         acc.setBalance(after);
         repo.save(acc);
  
-        guardarTransaccion("DEPOSIT", amount, acc, before, after);
+        guardarTransaccion("DEPOSIT", amount, acc, before, after,concepto);
         alertService.checkAndAlert(acc, amount);
         eventPublisher.publishEvent(new NotificationEvent(this, acc.getUser().getId(), "Depósito de " + amount + "€ realizado con éxito.", "INFO"));
         return acc;
@@ -138,7 +140,7 @@ public class AccountService {
      * @throws RuntimeException si se supera el límite mensual o la cantidad es inválida.
     */
 
-    public AccountResponse withdraw(Long id, double amount, Long requesterId) {
+    public AccountResponse withdraw(Long id, double amount, Long requesterId,String concepto) {
         Account acc = validarCuentaActiva(id);
         checkAccess(acc, requesterId);
  
@@ -157,7 +159,7 @@ public class AccountService {
  
         acc.setBalance(after);
         repo.save(acc);
-        guardarTransaccion("WITHDRAW", amount, acc, before, after);
+        guardarTransaccion("WITHDRAW", amount, acc, before, after,concepto);
         alertService.checkAndAlert(acc, amount);
         eventPublisher.publishEvent(new NotificationEvent(this, acc.getUser().getId(), "Retirada de " + amount + "€ realizada con éxito.", "INFO"));
         return new AccountResponse(acc, comprobarSaldoBajo(acc));
@@ -208,8 +210,8 @@ public class AccountService {
         repo.save(from);
         repo.save(to);
  
-        guardarTransaccion("TRANSFER_OUT", amount, from, fromBefore, from.getBalance());
-        guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
+        guardarTransaccion("TRANSFER_OUT", amount, from, fromBefore, from.getBalance(), null);
+        guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance(), null);
         alertService.checkAndAlert(from, amount);
         alertService.checkAndAlert(to, amount);
         eventPublisher.publishEvent(new NotificationEvent(this, from.getUser().getId(), "Transferencia enviada de " + amount + "€.", "INFO"));
@@ -319,10 +321,12 @@ public class AccountService {
     */
 
     private void guardarTransaccion(String tipo, double amount, Account acc,
-                                    double before, double after) {
+                                    double before, double after, String concepto) {
         Transaction t = new Transaction(tipo, amount, acc);
         t.setBalanceBefore(before);
         t.setBalanceAfter(after);
+        t.setConcepto(concepto); 
+        categoryService.autoCategorize(t);
         transactionRepo.save(t);
     }
  

@@ -45,6 +45,21 @@
                     <label>Cantidad (€):</label>
                     <input type="number" id="operation-amount" placeholder="0.00" min="0.01" step="0.01">
                 </div>
+                <div>
+                    <label>Categoría:</label>
+                    <select id="operation-categoria" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+                        <option value="">-- Seleccionar --</option>
+                        <option value="ALIMENTACION">🛒 Alimentación</option>
+                        <option value="TRANSPORTE">🚗 Transporte</option>
+                        <option value="OCIO">🎬 Ocio</option>
+                        <option value="SALUD">💊 Salud</option>
+                        <option value="EDUCACION">📚 Educación</option>
+                        <option value="HOGAR">🏠 Hogar</option>
+                        <option value="NOMINA">💼 Nómina</option>
+                        <option value="TRANSFERENCIA">💸 Transferencia</option>
+                        <option value="OTROS">📦 Otros</option>
+                    </select>
+                </div>
                 <div class="btn-group-vertical">
                     <button class="btn btn-deposit" onclick="operar('deposit')">Ingresar dinero</button>
                     <button class="btn btn-withdraw" onclick="operar('withdraw')">Retirar dinero</button>
@@ -106,7 +121,26 @@
             </div>
             <button class="btn btn-deposit" onclick="actualizarPerfil()">Guardar cambios</button>
         </section>
-
+        <section class="section-card">
+            <h2>Resumen por Categorías</h2>
+            <div class="ops-grid" style="margin-bottom: 15px;">
+                <div class="form-group">
+                    <label>Fecha inicio:</label>
+                    <input type="date" id="cat-from">
+                </div>
+                <div class="form-group">
+                    <label>Fecha fin:</label>
+                    <input type="date" id="cat-to">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button class="btn btn-primary" style="width:auto; padding:10px 20px;" 
+                    onclick="cargarResumenCategorias()">Ver resumen</button>
+                <button class="btn btn-secondary" style="width:auto; padding:10px 20px;" 
+                    onclick="verTodoResumen()">Ver todos</button>
+            </div>
+            <div id="category-summary" style="margin-top:15px;"></div>
+        </section>
         <section class="section-card">
             <h2>Historial de Movimientos</h2>
             <div class="ops-grid" style="margin-bottom: 15px;">
@@ -217,10 +251,11 @@
         }
 
         // OPERAR (DEPOSIT / WITHDRAW)
-        async function operar(tipo) {
+       async function operar(tipo) {
             const id = sessionStorage.getItem('accountId');
             const userId = sessionStorage.getItem('userId');
             const cantidad = document.getElementById('operation-amount').value;
+            const categoria = document.getElementById('operation-categoria').value;
 
             if (!cantidad || cantidad <= 0) {
                 alert("Cantidad inválida");
@@ -228,26 +263,25 @@
             }
 
             try {
-                const response = await fetch(`/accounts/${id}/${tipo}?amount=${cantidad}&requesterId=${userId}`, {
-                    method: 'PUT'
-                });
+                let url = `/accounts/${id}/${tipo}?amount=${cantidad}&requesterId=${userId}`;
+                if (categoria) url += `&concepto=${categoria}`;
+
+                const response = await fetch(url, { method: 'PUT' });
 
                 if (response.ok) {
                     const data = await response.json();
-
                     if (tipo === 'withdraw' && data.alert) {
                         alert("Operación realizada\n\n" + data.alert);
                     } else {
                         alert("Operación realizada");
                     }
-
                     document.getElementById('operation-amount').value = '';
+                    document.getElementById('operation-categoria').value = '';
                     actualizarDatos();
                 } else {
                     const msg = await response.text();
                     alert("Error: " + msg);
                 }
-
             } catch (e) {
                 alert("Error de conexión");
             }
@@ -520,57 +554,160 @@
             }
 
             const tipoLabel = {
-                DEPOSIT: 'Ingreso',
-                WITHDRAW: 'Retirada',
-                TRANSFER_IN: 'Transferencia recibida',
-                TRANSFER_OUT: 'Transferencia enviada'
+                DEPOSIT: 'Ingreso', WITHDRAW: 'Retirada',
+                TRANSFER_IN: 'Transferencia recibida', TRANSFER_OUT: 'Transferencia enviada'
             };
             const tipoColor = {
-                DEPOSIT: '#5cb85c',
-                WITHDRAW: '#f0ad4e',
-                TRANSFER_IN: '#5bc0de',
-                TRANSFER_OUT: '#d9534f'
+                DEPOSIT: '#5cb85c', WITHDRAW: '#f0ad4e',
+                TRANSFER_IN: '#5bc0de', TRANSFER_OUT: '#d9534f'
+            };
+            const categorias = ['ALIMENTACION','TRANSPORTE','OCIO','SALUD','EDUCACION','HOGAR','NOMINA','TRANSFERENCIA','OTROS'];
+            const catEmoji = {
+                ALIMENTACION:'🛒', TRANSPORTE:'🚗', OCIO:'🎬', SALUD:'💊',
+                EDUCACION:'📚', HOGAR:'🏠', NOMINA:'💼', TRANSFERENCIA:'💸', OTROS:'📦'
             };
 
             contenedor.innerHTML = movimientos.map(m => {
                 const fecha = new Date(m.date).toLocaleString('es-ES');
                 const label = tipoLabel[m.type] || m.type;
                 const color = tipoColor[m.type] || '#333';
+                const cat = m.category || 'OTROS';
+                const selectOpts = categorias.map(c =>
+                    `<option value="${c}" ${c === cat ? 'selected' : ''}>${catEmoji[c]} ${c}</option>`
+                ).join('');
+
                 return `<div style="border-left: 4px solid ${color}; padding: 10px 15px; margin-bottom: 10px; background: #f9f9f9; border-radius: 0 6px 6px 0;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong style="color:${color}">${label}</strong>
-                <span style="font-size:1.1em; font-weight:bold;">${m.amount.toFixed(2)} €</span>
-            </div>
-            <div style="font-size:0.85em; color:#666; margin-top:4px;">
-                ${fecha} &nbsp;|&nbsp; Saldo: ${m.balanceBefore.toFixed(2)} € → ${m.balanceAfter.toFixed(2)} €
-            </div>
-        </div>`;
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="color:${color}">${label}</strong>
+                        <span style="font-size:1.1em; font-weight:bold;">${m.amount.toFixed(2)} €</span>
+                    </div>
+                    <div style="font-size:0.85em; color:#666; margin-top:4px;">
+                        ${fecha} &nbsp;|&nbsp; Saldo: ${m.balanceBefore.toFixed(2)} € → ${m.balanceAfter.toFixed(2)} €
+                    </div>
+                    ${m.concepto ? `<div style="font-size:0.85em; color:#555; margin-top:3px;">📝 ${m.concepto}</div>` : ''}
+                    <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                        <select onchange="cambiarCategoria(${m.id}, this.value)" 
+                            style="font-size:0.85em; padding:2px 6px; border-radius:8px; border:1px solid #ccc;">
+                            ${selectOpts}
+                        </select>
+                    </div>
+                </div>`;
             }).join('');
+        }
+
+        async function cambiarCategoria(transactionId, newCategory) {
+            const accountId = sessionStorage.getItem('accountId');
+            try {
+                const res = await fetch(`/categories/transactions/${transactionId}/category?accountId=${accountId}&category=${newCategory}`, {
+                    method: 'PUT'
+                });
+                if (!res.ok) alert('Error al cambiar categoría');
+            } catch(e) {
+                alert('Error de conexión');
+            }
         }
 
         // HU22 T2+T3 – Logout: llamada al backend para invalidar token, borrado de storage y redirección
         async function cerrarSesion() {
-            const sessionToken = sessionStorage.getItem('sessionToken');
+                    const sessionToken = sessionStorage.getItem('sessionToken');
+
+                    try {
+                        // HU22 T1 – Notificar al servidor para añadir el token a la lista negra
+                        await fetch(`/auth/logout?sessionToken=${encodeURIComponent(sessionToken || '')}`, {
+                            method: 'POST'
+                        });
+                    } catch (e) {
+                        // Continuar con logout local aunque el servidor falle
+                        console.warn('No se pudo contactar al servidor para logout', e);
+                    }
+
+                    // HU22 T2 – Eliminar TODOS los datos de sesión del frontend
+                    sessionStorage.clear();
+                    localStorage.removeItem('userId');
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('sessionToken');
+
+                    // HU22 T3+T4 – Reemplazar historial y redirigir: el botón "Atrás" no puede volver al dashboard
+                    history.replaceState(null, '', 'index.html');
+                    window.location.replace('index.html');
+                }
+        async function cargarResumenCategorias() {
+            const accountId = sessionStorage.getItem('accountId');
+            const from = document.getElementById('cat-from').value;
+            const to = document.getElementById('cat-to').value;
+
+            if (!from || !to) { alert('Selecciona rango de fechas'); return; }
 
             try {
-                // HU22 T1 – Notificar al servidor para añadir el token a la lista negra
-                await fetch(`/auth/logout?sessionToken=${encodeURIComponent(sessionToken || '')}`, {
-                    method: 'POST'
-                });
-            } catch (e) {
-                // Continuar con logout local aunque el servidor falle
-                console.warn('No se pudo contactar al servidor para logout', e);
+                const res = await fetch(`/categories/accounts/${accountId}/summary?from=${from}&to=${to}`);
+                if (!res.ok) { alert('Error cargando resumen'); return; }
+                const data = await res.json();
+                const contenedor = document.getElementById('category-summary');
+
+                if (!data.length) {
+                    contenedor.innerHTML = '<p style="color:#999;">Sin gastos en este período.</p>';
+                    return;
+                }
+
+                const catEmoji = {
+                    ALIMENTACION:'🛒', TRANSPORTE:'🚗', OCIO:'🎬', SALUD:'💊',
+                    EDUCACION:'📚', HOGAR:'🏠', NOMINA:'💼', TRANSFERENCIA:'💸', OTROS:'📦'
+                };
+                const total = data.reduce((s, r) => s + r.totalAmount, 0);
+
+                contenedor.innerHTML = data.map(r => {
+                    const pct = total > 0 ? ((r.totalAmount / total) * 100).toFixed(1) : 0;
+                    return `<div style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.9em;">
+                            <span>${catEmoji[r.category] || '📦'} <strong>${r.category}</strong> (${r.count} ops)</span>
+                            <span><strong>${r.totalAmount.toFixed(2)} €</strong> (${pct}%)</span>
+                        </div>
+                        <div style="background:#eee; border-radius:8px; height:8px; margin-top:4px;">
+                            <div style="background:var(--deusto-blue); width:${pct}%; height:8px; border-radius:8px;"></div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                alert('Error de conexión');
             }
+        }
+        async function verTodoResumen() {
+            const accountId = sessionStorage.getItem('accountId');
+            document.getElementById('cat-from').value = '';
+            document.getElementById('cat-to').value = '';
 
-            // HU22 T2 – Eliminar TODOS los datos de sesión del frontend
-            sessionStorage.clear();
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userRole');
-            localStorage.removeItem('sessionToken');
+            try {
+                const res = await fetch(`/categories/accounts/${accountId}/summary?from=2000-01-01&to=2099-12-31`);
+                if (!res.ok) { alert('Error cargando resumen'); return; }
+                const data = await res.json();
+                const contenedor = document.getElementById('category-summary');
 
-            // HU22 T3+T4 – Reemplazar historial y redirigir: el botón "Atrás" no puede volver al dashboard
-            history.replaceState(null, '', 'index.html');
-            window.location.replace('index.html');
+                if (!data.length) {
+                    contenedor.innerHTML = '<p style="color:#999;">Sin gastos registrados.</p>';
+                    return;
+                }
+
+                const catEmoji = {
+                    ALIMENTACION:'🛒', TRANSPORTE:'🚗', OCIO:'🎬', SALUD:'💊',
+                    EDUCACION:'📚', HOGAR:'🏠', NOMINA:'💼', TRANSFERENCIA:'💸', OTROS:'📦'
+                };
+                const total = data.reduce((s, r) => s + r.totalAmount, 0);
+
+                contenedor.innerHTML = data.map(r => {
+                    const pct = total > 0 ? ((r.totalAmount / total) * 100).toFixed(1) : 0;
+                    return `<div style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.9em;">
+                            <span>${catEmoji[r.category] || '📦'} <strong>${r.category}</strong> (${r.count} ops)</span>
+                            <span><strong>${r.totalAmount.toFixed(2)} €</strong> (${pct}%)</span>
+                        </div>
+                        <div style="background:#eee; border-radius:8px; height:8px; margin-top:4px;">
+                            <div style="background:var(--deusto-blue); width:${pct}%; height:8px; border-radius:8px;"></div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                alert('Error de conexión');
+            }
         }
 
         function descargarExtracto() {
@@ -579,6 +716,7 @@
             if (!accountId || !requesterId) return;
             window.open(`/accounts/${accountId}/statement/pdf?requesterId=${requesterId}`, '_blank');
         }
+
 
     </script>
 

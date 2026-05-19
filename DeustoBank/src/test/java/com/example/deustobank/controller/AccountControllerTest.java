@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.util.List;
 import java.util.Optional;
@@ -81,7 +82,7 @@ class AccountControllerTest {
 
     @Test
     void deposit_Success() throws Exception {
-        when(accountService.deposit(eq(10L), eq(50.0), eq(1L))).thenReturn(account);
+        when(accountService.deposit(eq(10L), eq(50.0), eq(1L), any())).thenReturn(account);
 
         mockMvc.perform(put("/accounts/10/deposit")
                 .param("amount", "50.0")
@@ -92,7 +93,7 @@ class AccountControllerTest {
 
     @Test
     void deposit_BadRequest() throws Exception {
-        when(accountService.deposit(anyLong(), anyDouble(), anyLong())).thenThrow(new RuntimeException("Error deposit"));
+        when(accountService.deposit(anyLong(), anyDouble(), anyLong(), any())).thenThrow(new RuntimeException("Error deposit"));
 
         mockMvc.perform(put("/accounts/10/deposit")
                 .param("amount", "50.0")
@@ -104,7 +105,7 @@ class AccountControllerTest {
     @Test
     void withdraw_Success() throws Exception {
         AccountResponse response = new AccountResponse(account, null);
-        when(accountService.withdraw(eq(10L), eq(20.0), eq(1L))).thenReturn(response);
+        when(accountService.withdraw(eq(10L), eq(20.0), eq(1L), any())).thenReturn(response);
 
         mockMvc.perform(put("/accounts/10/withdraw")
                 .param("amount", "20.0")
@@ -115,7 +116,7 @@ class AccountControllerTest {
 
     @Test
     void withdraw_BadRequest() throws Exception {
-        when(accountService.withdraw(anyLong(), anyDouble(), anyLong())).thenThrow(new RuntimeException("Error withdraw"));
+        when(accountService.withdraw(anyLong(), anyDouble(), anyLong(), any())).thenThrow(new RuntimeException("Error withdraw"));
 
         mockMvc.perform(put("/accounts/10/withdraw")
                 .param("amount", "20.0")
@@ -172,6 +173,7 @@ class AccountControllerTest {
     }
 
     @Test
+<<<<<<< Updated upstream
     void getTransactions_Success() throws Exception {
         Transaction t = new Transaction();
         t.setId(100L);
@@ -264,4 +266,28 @@ class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(200));
     }
+=======
+void getTransactions_Success() throws Exception {
+    Transaction t = new Transaction();
+    t.setId(100L);
+    
+    // 1. Cambia findByAccountId → findByAccountIdOrderByDateDesc
+    when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(t));
+
+    // 2. Añade el requesterId obligatorio
+    // Necesitas mockear que la cuenta pertenece al usuario 1
+    Account accountWithUser = new Account();
+    accountWithUser.setId(10L);
+    accountWithUser.setBalance(100.0);
+    com.example.deustobank.model.User user = new com.example.deustobank.model.User();
+    user.setId(1L);
+    accountWithUser.setUser(user);
+    when(accountService.getById(10L)).thenReturn(accountWithUser);
+
+    mockMvc.perform(get("/accounts/10/transactions")
+                .param("requesterId", "1"))  // 3. Parámetro obligatorio
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(100));
+}
+>>>>>>> Stashed changes
 }

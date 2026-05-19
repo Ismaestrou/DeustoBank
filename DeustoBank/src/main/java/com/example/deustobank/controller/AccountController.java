@@ -142,9 +142,10 @@ public class AccountController {
     @PutMapping("/{id}/deposit")
     public ResponseEntity<?> deposit(@PathVariable Long id,
                                     @RequestParam double amount,
-                                    @RequestParam Long requesterId) {
+                                    @RequestParam Long requesterId,
+                                    @RequestParam(required = false) String concepto) {
         try {
-            return ResponseEntity.ok(service.deposit(id, amount, requesterId));
+            return ResponseEntity.ok(service.deposit(id, amount, requesterId, concepto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body("Error deposit");
         }
@@ -159,16 +160,16 @@ public class AccountController {
     */
 
     @PutMapping("/{id}/withdraw")
-    public ResponseEntity<?> withdraw(@PathVariable Long id,
-                        @RequestParam double amount,
-                        @RequestParam Long requesterId) {
-        try {
-            return ResponseEntity.ok(service.withdraw(id, amount, requesterId));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        public ResponseEntity<?> withdraw(@PathVariable Long id,
+                            @RequestParam double amount,
+                            @RequestParam Long requesterId,
+                            @RequestParam(required = false) String concepto) {
+            try {
+                return ResponseEntity.ok(service.withdraw(id, amount, requesterId, concepto));
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }
-    }
- 
     /**
      * @brief POST /accounts/transfer — Realiza una transferencia entre cuentas.
      * @param fromId ID de la cuenta origen.

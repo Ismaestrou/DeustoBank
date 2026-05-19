@@ -2,6 +2,8 @@ package com.example.deustobank.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,7 +23,11 @@ public class Transaction {
 
     private double balanceBefore;
     private double balanceAfter;
+    private String concepto;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionCategory category = TransactionCategory.OTROS;
     @ManyToOne
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties({
         "user",

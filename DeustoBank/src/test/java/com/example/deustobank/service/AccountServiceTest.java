@@ -3,6 +3,8 @@ package com.example.deustobank.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
@@ -39,8 +41,13 @@ class AccountServiceTest {
     @Mock
     private AlertService alertService;
 
+    @Mock
+    private CategoryService categoryService;
+
     @InjectMocks
     private AccountService accountService;
+
+    
 
     private User user;
     private Account account;
@@ -117,7 +124,7 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        Account result = accountService.deposit(10L, 50.0, 1L);
+        Account result = accountService.deposit(10L, 50.0, 1L,null);
 
         assertEquals(150.0, result.getBalance());
         verify(transactionRepo).save(any(Transaction.class));
@@ -129,7 +136,7 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        assertThrows(RuntimeException.class, () -> accountService.deposit(10L, -10.0, 1L));
+        assertThrows(RuntimeException.class, () -> accountService.deposit(10L, -10.0, 1L,null));
     }
 
     @Test
@@ -137,7 +144,7 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        AccountResponse result = accountService.withdraw(10L, 30.0, 1L);
+        AccountResponse result = accountService.withdraw(10L, 30.0, 1L, null);
 
         assertEquals(70.0, result.getAccount().getBalance());
         assertNull(result.getAlert());
@@ -150,7 +157,7 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
-        Exception ex = assertThrows(RuntimeException.class, () -> accountService.withdraw(10L, 30.0, 1L));
+        Exception ex = assertThrows(RuntimeException.class, () -> accountService.withdraw(10L, 30.0, 1L, null));
         assertTrue(ex.getMessage().contains("límite mensual"));
     }
 
@@ -178,7 +185,11 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(new Transaction()));
+<<<<<<< Updated upstream
         
+=======
+
+>>>>>>> Stashed changes
         assertDoesNotThrow(() -> accountService.deleteAccount(10L, 1L));
         verify(transactionRepo).deleteAll(anyList());
         verify(accountRepo).delete(account);

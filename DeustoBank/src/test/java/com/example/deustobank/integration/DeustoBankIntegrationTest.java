@@ -19,6 +19,7 @@ import org.springframework.util.MultiValueMap;
 
 import com.example.deustobank.model.User;
 import com.example.deustobank.repository.AccountRepository;
+import com.example.deustobank.repository.ScheduledTransferRepository;
 import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
 
@@ -37,9 +38,13 @@ class DeustoBankIntegrationTest {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private ScheduledTransferRepository scheduledTransferRepository;
+
     @BeforeEach
     void setup() {
         transactionRepository.deleteAll();
+        scheduledTransferRepository.deleteAll();
         accountRepository.deleteAll();
         userRepository.deleteAll();
     }

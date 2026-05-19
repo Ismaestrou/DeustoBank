@@ -25,6 +25,7 @@ import com.example.deustobank.model.SystemStatsDTO;
 import com.example.deustobank.repository.AccountRepository;
 import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class AccountServiceTest {
@@ -43,6 +44,9 @@ class AccountServiceTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private AccountService accountService;

@@ -3,6 +3,7 @@ package com.example.deustobank.integration;
 import com.example.deustobank.model.Account;
 import com.example.deustobank.model.User;
 import com.example.deustobank.repository.AccountRepository;
+import com.example.deustobank.repository.ScheduledTransferRepository;
 import com.example.deustobank.repository.TransactionRepository;
 import com.example.deustobank.repository.UserRepository;
 
@@ -32,6 +33,9 @@ public class AccountIntegrationTest {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private ScheduledTransferRepository scheduledTransferRepository;
+
     private Long userId;
     private Long accountId;
 
@@ -41,6 +45,7 @@ public class AccountIntegrationTest {
         baseUrl = "http://localhost:" + port;
 
         transactionRepository.deleteAll();
+        scheduledTransferRepository.deleteAll();
         accountRepository.deleteAll();
         userRepository.deleteAll();
 

@@ -170,6 +170,22 @@ class AdminControllerTest {
         );
     }
 
+    @Test
+    void toggleUserStatus_InactiveToActive() throws Exception {
+        // Cubre la rama: usuario inactivo -> pasa a activo (toggle del boolean)
+        testUser.setActive(false);
+        doNothing().when(authService).checkAdmin(1L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+
+        mockMvc.perform(
+                put("/api/admin/users/2/status")
+                        .param("requesterId", "1")
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.active").value(true));
+    }
+
+
     // ============================================================
     // changeUserRolePatch
     // ============================================================
@@ -406,6 +422,85 @@ class AdminControllerTest {
             )
         );
     }
+
+    @Test
+    void updateUser_OnlyFullName() throws Exception {
+        // Rama: fullName presente y no blank -> se actualiza; resto ausente -> sin cambio.
+        doNothing().when(authService).checkAdmin(1L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+
+        String body = "{\"fullName\":\"Solo Nombre\"}";
+
+        mockMvc.perform(
+                put("/api/admin/users/2")
+                        .param("requesterId", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.fullName").value("Solo Nombre"))
+        .andExpect(jsonPath("$.email").value("test@test.com"))
+        .andExpect(jsonPath("$.dni").value("12345678A"));
+    }
+
+    @Test
+    void updateUser_OnlyEmail() throws Exception {
+        // Rama: email presente y no blank -> se actualiza; resto ausente -> sin cambio.
+        doNothing().when(authService).checkAdmin(1L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+
+        String body = "{\"email\":\"nuevo@email.com\"}";
+
+        mockMvc.perform(
+                put("/api/admin/users/2")
+                        .param("requesterId", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.fullName").value("Test User"))
+        .andExpect(jsonPath("$.email").value("nuevo@email.com"));
+    }
+
+    @Test
+    void updateUser_OnlyDni() throws Exception {
+        // Rama: dni presente y no blank -> se actualiza; resto ausente -> sin cambio.
+        doNothing().when(authService).checkAdmin(1L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+
+        String body = "{\"dni\":\"99999999Z\"}";
+
+        mockMvc.perform(
+                put("/api/admin/users/2")
+                        .param("requesterId", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.fullName").value("Test User"))
+        .andExpect(jsonPath("$.dni").value("99999999Z"));
+    }
+
+    @Test
+    void updateUser_EmptyBody_NoChanges() throws Exception {
+        // Rama: ninguna clave presente -> no se actualiza nada.
+        doNothing().when(authService).checkAdmin(1L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+
+        String body = "{}";
+
+        mockMvc.perform(
+                put("/api/admin/users/2")
+                        .param("requesterId", "1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body)
+        )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.fullName").value("Test User"))
+        .andExpect(jsonPath("$.email").value("test@test.com"))
+        .andExpect(jsonPath("$.dni").value("12345678A"));
+    }
+
 
     // ============================================================
     // deleteUser

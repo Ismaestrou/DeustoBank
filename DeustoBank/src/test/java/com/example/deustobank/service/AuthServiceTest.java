@@ -275,4 +275,14 @@ class AuthServiceTest {
                 () -> authService.changePassword(1L, "correctpass", null));
         assertTrue(ex.getMessage().contains("4 caracteres"));
     }
+
+    @Test
+    void getUserOrThrow_NotFound_ThrowsException() {
+        // Cubre la lambda de getUserOrThrow cuando findById devuelve vacío
+        when(userRepo.findById(999L)).thenReturn(Optional.empty());
+
+        Exception ex = assertThrows(RuntimeException.class,
+                () -> authService.getUserOrThrow(999L));
+        assertEquals("Usuario no encontrado", ex.getMessage());
+    }
 }

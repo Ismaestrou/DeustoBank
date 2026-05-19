@@ -1,7 +1,6 @@
 package com.example.deustobank.controller;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
@@ -43,29 +42,17 @@ class AccountControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private AccountService service;
+    // ── Direct dependencies of AccountController ──────────────────────────────
+    @MockBean private AccountService service;
+    @MockBean private TransactionRepository transactionRepo;
+    @MockBean private PdfService pdfService;
 
-    @MockBean
-    private TransactionRepository transactionRepo;
-
-    @MockBean
-    private PdfService pdfService;
-
-    @MockBean
-    private AlertService alertService;
-
-    @MockBean
-    private AuthService authService;
-
-    @MockBean
-    private NotificationService notificationService;
-
-    @MockBean
-    private ExportService exportService;
-
-    @MockBean
-    private UserService userService;
+    // ── Extra beans required by the Spring context in WebMvcTest ─────────────
+    @MockBean private AlertService alertService;
+    @MockBean private AuthService authService;
+    @MockBean private NotificationService notificationService;
+    @MockBean private ExportService exportService;
+    @MockBean private UserService userService;
 
     private User owner;
     private Account testAccount;
@@ -96,73 +83,56 @@ class AccountControllerTest {
         testTransaction.setAccount(testAccount);
     }
 
-    // ============================================================
-    // getAll
-    // ============================================================
+    // ── GET /accounts ─────────────────────────────────────────────────────────
 
     @Test
     void getAll_Success() throws Exception {
-
         when(service.getAll()).thenReturn(List.of(testAccount));
 
         mockMvc.perform(get("/accounts"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(10));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$[0].id").value(10));
     }
 
-    // ============================================================
-    // getByUser
-    // ============================================================
+    // ── GET /accounts/user/{userId} ───────────────────────────────────────────
 
     @Test
     void getByUser_Success() throws Exception {
-
         when(service.getAccountsByUser(1L)).thenReturn(List.of(testAccount));
 
         mockMvc.perform(get("/accounts/user/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].ownerName").value("Test Owner"));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$[0].ownerName").value("Test Owner"));
     }
 
-    // ============================================================
-    // getById
-    // ============================================================
+    // ── GET /accounts/{id} ────────────────────────────────────────────────────
 
     @Test
     void getById_Success() throws Exception {
-
         when(service.getById(10L)).thenReturn(testAccount);
 
         mockMvc.perform(get("/accounts/10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(10))
-                .andExpect(jsonPath("$.balance").value(1000.0));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(10))
+               .andExpect(jsonPath("$.balance").value(1000.0));
     }
 
-    // ============================================================
-    // getTransactions – sin filtro de fechas
-    // ============================================================
+    // ── GET /accounts/{id}/transactions ───────────────────────────────────────
 
     @Test
-    void getTransactions_NoFilter_Success() throws Exception {
-
+    void getTransactions_NoDateFilter_Success() throws Exception {
         when(service.getById(10L)).thenReturn(testAccount);
         when(transactionRepo.findByAccountIdOrderByDateDesc(10L))
                 .thenReturn(List.of(testTransaction));
 
         mockMvc.perform(get("/accounts/10/transactions")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(100));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$[0].id").value(100));
     }
-
-    // ============================================================
-    // getTransactions – con filtro de fechas
-    // ============================================================
 
     @Test
     void getTransactions_WithDateFilter_Success() throws Exception {
-
         when(service.getById(10L)).thenReturn(testAccount);
         when(transactionRepo.findByAccountIdAndDateBetween(
                 eq(10L), any(LocalDateTime.class), any(LocalDateTime.class)))
@@ -172,63 +142,47 @@ class AccountControllerTest {
                         .param("requesterId", "1")
                         .param("from", "2024-01-01")
                         .param("to", "2024-12-31"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].type").value("DEPOSIT"));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$[0].type").value("DEPOSIT"));
     }
-
-    // ============================================================
-    // getTransactions – no autorizado
-    // ============================================================
 
     @Test
-    void getTransactions_Unauthorized() throws Exception {
-
+    void getTransactions_Unauthorized_Returns403() throws Exception {
         when(service.getById(10L)).thenReturn(testAccount);
 
+        // requesterId=99 does not match account owner id=1
         mockMvc.perform(get("/accounts/10/transactions")
                         .param("requesterId", "99"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().string("No autorizado"));
+               .andExpect(status().isForbidden())
+               .andExpect(content().string("No autorizado"));
     }
 
-    // ============================================================
-    // getTransactionById – encontrado
-    // ============================================================
+    // ── GET /accounts/transactions/{id} ───────────────────────────────────────
 
     @Test
     void getTransactionById_Found() throws Exception {
-
         when(transactionRepo.findByIdWithDetails(100L))
                 .thenReturn(Optional.of(testTransaction));
 
         mockMvc.perform(get("/accounts/transactions/100"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(100));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(100));
     }
 
-    // ============================================================
-    // getTransactionById – no encontrado
-    // ============================================================
-
     @Test
-    void getTransactionById_NotFound() throws Exception {
-
+    void getTransactionById_NotFound_Returns404() throws Exception {
         when(transactionRepo.findByIdWithDetails(999L))
                 .thenReturn(Optional.empty());
 
         mockMvc.perform(get("/accounts/transactions/999"))
-                .andExpect(status().isNotFound());
+               .andExpect(status().isNotFound());
     }
 
-    // ============================================================
-    // create
-    // ============================================================
+    // ── POST /accounts ────────────────────────────────────────────────────────
 
     @Test
     void create_Success() throws Exception {
-
-        when(service.create(any(Account.class), eq(1L)))
-                .thenReturn(testAccount);
+        when(service.create(any(Account.class), eq(1L))).thenReturn(testAccount);
 
         String body = "{\"ownerName\":\"Test Owner\",\"balance\":1000.0}";
 
@@ -236,52 +190,42 @@ class AccountControllerTest {
                         .param("userId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(10));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(10));
     }
 
-    // ============================================================
-    // deposit – éxito
-    // ============================================================
+    // ── PUT /accounts/{id}/deposit ────────────────────────────────────────────
 
     @Test
     void deposit_Success() throws Exception {
-
-        // concepto es @RequestParam(required = false) → anyString() o isNull()
+        // concepto is @RequestParam(required=false) — use any() to accept both null and string
         when(service.deposit(eq(10L), eq(500.0), eq(1L), any()))
                 .thenReturn(testAccount);
 
         mockMvc.perform(put("/accounts/10/deposit")
                         .param("amount", "500.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(10));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(10));
     }
 
-    // ============================================================
-    // deposit – excepción (rama catch)
-    // ============================================================
-
     @Test
-    void deposit_Error() throws Exception {
-
+    void deposit_ServiceThrows_ReturnsBadRequest() throws Exception {
         when(service.deposit(eq(10L), eq(500.0), eq(1L), any()))
                 .thenThrow(new RuntimeException("Error interno"));
 
+        // Controller catches RuntimeException and returns 400 with fixed string "Error deposit"
         mockMvc.perform(put("/accounts/10/deposit")
                         .param("amount", "500.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Error deposit"));
+               .andExpect(status().isBadRequest())
+               .andExpect(content().string("Error deposit"));
     }
 
-    // ============================================================
-    // withdraw – éxito
-    // ============================================================
+    // ── PUT /accounts/{id}/withdraw ───────────────────────────────────────────
 
     @Test
     void withdraw_Success() throws Exception {
-
         AccountResponse response = new AccountResponse(testAccount, null);
         when(service.withdraw(eq(10L), eq(200.0), eq(1L), any()))
                 .thenReturn(response);
@@ -289,34 +233,27 @@ class AccountControllerTest {
         mockMvc.perform(put("/accounts/10/withdraw")
                         .param("amount", "200.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.account.id").value(10));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.account.id").value(10));
     }
 
-    // ============================================================
-    // withdraw – excepción
-    // ============================================================
-
     @Test
-    void withdraw_Error() throws Exception {
-
+    void withdraw_ServiceThrows_ReturnsBadRequestWithMessage() throws Exception {
         when(service.withdraw(eq(10L), eq(9999.0), eq(1L), any()))
                 .thenThrow(new RuntimeException("Saldo insuficiente"));
 
+        // Controller catches RuntimeException and returns 400 with e.getMessage()
         mockMvc.perform(put("/accounts/10/withdraw")
                         .param("amount", "9999.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Saldo insuficiente"));
+               .andExpect(status().isBadRequest())
+               .andExpect(content().string("Saldo insuficiente"));
     }
 
-    // ============================================================
-    // transfer – éxito sin alerta
-    // ============================================================
+    // ── POST /accounts/transfer ───────────────────────────────────────────────
 
     @Test
     void transfer_Success_NoAlert() throws Exception {
-
         when(service.transfer(10L, 20L, 100.0, 1L)).thenReturn(null);
 
         mockMvc.perform(post("/accounts/transfer")
@@ -324,17 +261,12 @@ class AccountControllerTest {
                         .param("toId", "20")
                         .param("amount", "100.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Transferencia realizada"));
+               .andExpect(status().isOk())
+               .andExpect(content().string("Transferencia realizada"));
     }
 
-    // ============================================================
-    // transfer – éxito con alerta
-    // ============================================================
-
     @Test
-    void transfer_Success_WithAlert() throws Exception {
-
+    void transfer_Success_WithLowBalanceAlert() throws Exception {
         when(service.transfer(10L, 20L, 100.0, 1L))
                 .thenReturn("Saldo bajo detectado");
 
@@ -343,18 +275,13 @@ class AccountControllerTest {
                         .param("toId", "20")
                         .param("amount", "100.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Transferencia realizada"))
-                .andExpect(jsonPath("$.alert").value("Saldo bajo detectado"));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.message").value("Transferencia realizada"))
+               .andExpect(jsonPath("$.alert").value("Saldo bajo detectado"));
     }
 
-    // ============================================================
-    // transfer – excepción
-    // ============================================================
-
     @Test
-    void transfer_Error() throws Exception {
-
+    void transfer_ServiceThrows_ReturnsBadRequestWithMessage() throws Exception {
         when(service.transfer(10L, 20L, 100.0, 1L))
                 .thenThrow(new RuntimeException("Cuenta no encontrada"));
 
@@ -363,64 +290,52 @@ class AccountControllerTest {
                         .param("toId", "20")
                         .param("amount", "100.0")
                         .param("requesterId", "1"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Cuenta no encontrada"));
+               .andExpect(status().isBadRequest())
+               .andExpect(content().string("Cuenta no encontrada"));
     }
 
-    // ============================================================
-    // delete
-    // ============================================================
+    // ── DELETE /accounts/{id} ─────────────────────────────────────────────────
 
     @Test
     void delete_Success() throws Exception {
-
         doNothing().when(service).deleteAccount(10L, 1L);
 
         mockMvc.perform(delete("/accounts/10")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Cuenta eliminada correctamente"));
+               .andExpect(status().isOk())
+               .andExpect(content().string("Cuenta eliminada correctamente"));
     }
 
-    // ============================================================
-    // setLimiteGastoMensual
-    // ============================================================
+    // ── PUT /accounts/{id}/limite ─────────────────────────────────────────────
 
     @Test
     void setLimiteGastoMensual_Success() throws Exception {
-
         testAccount.setLimiteGastoMensual(500.0);
         when(service.setLimiteGastoMensual(10L, 500.0)).thenReturn(testAccount);
 
         mockMvc.perform(put("/accounts/10/limite")
                         .param("limite", "500.0"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.limiteGastoMensual").value(500.0));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.limiteGastoMensual").value(500.0));
     }
 
-    // ============================================================
-    // setUmbralSaldoBajo
-    // ============================================================
+    // ── PUT /accounts/{id}/umbral ─────────────────────────────────────────────
 
     @Test
     void setUmbralSaldoBajo_Success() throws Exception {
-
         testAccount.setUmbralSaldoBajo(100.0);
         when(service.setUmbralSaldoBajo(10L, 100.0)).thenReturn(testAccount);
 
         mockMvc.perform(put("/accounts/10/umbral")
                         .param("umbral", "100.0"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.umbralSaldoBajo").value(100.0));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.umbralSaldoBajo").value(100.0));
     }
 
-    // ============================================================
-    // getPdfStatement – autorizado
-    // ============================================================
+    // ── GET /accounts/{id}/statement/pdf ─────────────────────────────────────
 
     @Test
     void getPdfStatement_Success() throws Exception {
-
         when(service.getById(10L)).thenReturn(testAccount);
         when(transactionRepo.findByAccountIdOrderByDateDesc(10L))
                 .thenReturn(List.of(testTransaction));
@@ -429,21 +344,17 @@ class AccountControllerTest {
 
         mockMvc.perform(get("/accounts/10/statement/pdf")
                         .param("requesterId", "1"))
-                .andExpect(status().isOk())
-                .andExpect(header().string("Content-Type", "application/pdf"));
+               .andExpect(status().isOk())
+               .andExpect(header().string("Content-Type", "application/pdf"));
     }
 
-    // ============================================================
-    // getPdfStatement – no autorizado
-    // ============================================================
-
     @Test
-    void getPdfStatement_Unauthorized() throws Exception {
-
+    void getPdfStatement_Unauthorized_Returns403() throws Exception {
         when(service.getById(10L)).thenReturn(testAccount);
 
+        // requesterId=99 does not match account owner id=1
         mockMvc.perform(get("/accounts/10/statement/pdf")
                         .param("requesterId", "99"))
-                .andExpect(status().isForbidden());
+               .andExpect(status().isForbidden());
     }
 }

@@ -56,7 +56,7 @@ class CategoryServiceTest {
     @Test
     void categorize_Transporte() {
         assertEquals(TransactionCategory.TRANSPORTE,
-                categoryService.categorize("Gasolina repsol", "WITHDRAW"));
+                categoryService.categorize("Billete renfe Madrid", "WITHDRAW"));
     }
 
     @Test

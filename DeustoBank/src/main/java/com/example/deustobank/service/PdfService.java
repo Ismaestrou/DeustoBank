@@ -21,8 +21,13 @@ import java.util.List;
 @Service
 public class PdfService {
 
+    /** Factored out to allow overriding in tests. */
+    protected Document createDocument() {
+        return new Document();
+    }
+
     public byte[] generateStatement(Account account, List<Transaction> transactions) {
-        Document document = new Document();
+        Document document = createDocument();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         try {

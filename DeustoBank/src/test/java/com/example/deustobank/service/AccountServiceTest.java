@@ -169,6 +169,14 @@ class AccountServiceTest {
     }
 
     @Test
+    void deposit_RequesterNotFound_ThrowsException() {
+        when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
+        when(userRepo.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> accountService.deposit(10L, 50.0, 99L, null));
+    }
+
+    @Test
     void deposit_AdminCanDepositToAnyAccount() {
         User admin = new User();
         admin.setId(99L);

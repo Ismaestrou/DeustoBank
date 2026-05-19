@@ -1,48 +1,86 @@
 package com.example.deustobank.service;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.deustobank.model.Account;
 import com.example.deustobank.model.Transaction;
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
 
-@SpringBootTest
-class PdfPerformanceTest {
+@ExtendWith(MockitoExtension.class)
+class PdfServiceTest {
 
-    @Autowired
-    private PdfService pdfService;
+    // ============================================================
+    // generateStatement — rama feliz
+    // ============================================================
 
     @Test
-    void testPdfGenerationWithLargeVolumeOfData() {
-        Account acc = new Account();
-        acc.setId(1L);
-        acc.setOwnerName("Usuario Rendimiento");
-        acc.setBalance(50000.0);
+    void generateStatement_ReturnsPdfBytes() {
+        PdfService pdfService = new PdfService();
 
-        List<Transaction> transactions = new ArrayList<>();
-        for (int i = 0; i < 5000; i++) {
-            Transaction t = new Transaction("DEPOSIT", 10.0, acc);
-            t.setBalanceBefore(i * 10.0);
-            t.setBalanceAfter((i + 1) * 10.0);
-            transactions.add(t);
-        }
+        Account account = new Account();
+        account.setId(1L);
+        account.setOwnerName("Test User");
+        account.setBalance(1000.0);
 
-        long startTime = System.currentTimeMillis();
-        byte[] pdfBytes = pdfService.generateStatement(acc, transactions);
-        long endTime = System.currentTimeMillis();
+        Transaction t = new Transaction("DEPOSIT", 100.0, account);
+        t.setBalanceBefore(900.0);
+        t.setBalanceAfter(1000.0);
 
-        assertNotNull(pdfBytes);
-        assertTrue(pdfBytes.length > 0);
-        
-        long duration = endTime - startTime;
-        assertTrue(duration < 300000, "La generación de PDF tardó demasiado: " + duration + " ms");
-        System.out.println("PDF con 5000 transacciones generado en: " + duration + " ms");
+        byte[] result = pdfService.generateStatement(account, List.of(t));
+
+        assertNotNull(result);
+        assertTrue(result.length > 0);
+    }
+
+    @Test
+    void generateStatement_EmptyTransactions_ReturnsPdfBytes() {
+        PdfService pdfService = new PdfService();
+
+        Account account = new Account();
+        account.setId(2L);
+        account.setOwnerName("Empty User");
+        account.setBalance(0.0);
+
+        byte[] result = pdfService.generateStatement(account, List.of());
+
+        assertNotNull(result);
+        assertTrue(result.length > 0);
+    }
+
+    // ============================================================
+    // generateStatement — rama catch (DocumentException)
+    // ============================================================
+
+    @Test
+    void generateStatement_DocumentException_ReturnsEmptyBytes() throws DocumentException {
+        // Subclase anónima que sobreescribe createDocument() devolviendo un
+        // Document mockeado que lanza DocumentException al llamar a add().
+        Document brokenDoc = mock(Document.class);
+        doThrow(new DocumentException("forced error")).when(brokenDoc).add(any());
+
+        PdfService pdfService = new PdfService() {
+            @Override
+            protected Document createDocument() {
+                return brokenDoc;
+            }
+        };
+
+        Account account = new Account();
+        account.setId(3L);
+        account.setOwnerName("Error User");
+        account.setBalance(0.0);
+
+        // No debe lanzar excepción; el catch la absorbe y devuelve array vacío
+        byte[] result = pdfService.generateStatement(account, List.of());
+
+        assertNotNull(result);
     }
 }

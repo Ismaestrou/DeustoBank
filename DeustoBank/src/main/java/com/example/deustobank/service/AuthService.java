@@ -79,8 +79,8 @@ public class AuthService {
     }
 
     public User getUserOrThrow(Long id) {
-    return userRepo.findById(id)
-        .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return userRepo.findById(id)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
     public void checkAdmin(Long userId) {
@@ -90,6 +90,7 @@ public class AuthService {
             throw new RuntimeException("Acceso denegado: solo administradores");
         }
     }
+
     public String resetPassword(Long userId) {
         User user = getUserOrThrow(userId);
 
@@ -102,18 +103,33 @@ public class AuthService {
 
     public User updateProfile(Long id, String email, String phone) {
         User user = getUserOrThrow(id);
-    
+
         if (email != null && !email.equals(user.getEmail())) {
             if (userRepo.findByEmail(email).isPresent()) {
                 throw new RuntimeException("El email ya está en uso por otro usuario");
             }
             user.setEmail(email);
         }
-    
+
         if (phone != null) {
             user.setPhone(phone);
         }
-    
+
         return userRepo.save(user);
+    }
+
+    public void changePassword(Long id, String passwordActual, String passwordNueva) {
+        User user = getUserOrThrow(id);
+
+        if (!encoder.matches(passwordActual, user.getPassword())) {
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+
+        if (passwordNueva == null || passwordNueva.length() < 4) {
+            throw new RuntimeException("La nueva contraseña debe tener al menos 4 caracteres");
+        }
+
+        user.setPassword(encoder.encode(passwordNueva));
+        userRepo.save(user);
     }
 }

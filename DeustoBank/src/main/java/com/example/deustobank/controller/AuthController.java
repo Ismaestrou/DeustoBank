@@ -42,7 +42,8 @@ public class AuthController {
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateProfile(@PathVariable Long id,
-            @RequestParam(required = false) String email, @RequestParam(required = false) String phone) {
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone) {
         try {
             User updated = service.updateProfile(id, email, phone);
             return ResponseEntity.ok(updated);
@@ -57,5 +58,17 @@ public class AuthController {
             tokenBlacklist.invalidate(sessionToken);
         }
         return ResponseEntity.ok(java.util.Map.of("message", "Sesión cerrada correctamente"));
+    }
+
+    @PutMapping("/change-password/{id}")
+    public ResponseEntity<?> changePassword(@PathVariable Long id,
+            @RequestParam String passwordActual,
+            @RequestParam String passwordNueva) {
+        try {
+            service.changePassword(id, passwordActual, passwordNueva);
+            return ResponseEntity.ok("Contraseña cambiada correctamente");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

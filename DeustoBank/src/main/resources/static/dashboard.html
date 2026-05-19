@@ -79,10 +79,10 @@
             </div>
             <button class="btn btn-transfer" onclick="transferir()">Ejecutar Transferencia</button>
         </section>
+
         <section class="section-card">
             <h2>Transferencias Programadas</h2>
             <p style="font-size: 0.9em; color: #666;">Automatiza pagos fijos con la frecuencia que necesites.</p>
-
             <div class="form-group">
                 <label>ID Cuenta Destino:</label>
                 <input type="number" id="st-to" placeholder="ID del receptor">
@@ -104,7 +104,6 @@
                 <input type="date" id="st-start">
             </div>
             <button class="btn btn-transfer" onclick="crearTransferenciaProgramada()">Programar transferencia</button>
-
             <h3 style="margin-top: 25px; font-size: 1em;">Transferencias activas</h3>
             <div id="st-list" style="margin-top: 10px;">
                 <p style="color:#999;">Cargando...</p>
@@ -138,6 +137,26 @@
         </section>
 
         <section class="section-card">
+            <h2>Cambiar Contraseña</h2>
+            <p style="font-size: 0.9em; color: #666;">
+                Introduce tu contraseña actual y la nueva para actualizarla.
+            </p>
+            <div class="form-group">
+                <label>Contraseña actual:</label>
+                <input type="password" id="password-actual" placeholder="Tu contraseña actual">
+            </div>
+            <div class="form-group">
+                <label>Nueva contraseña:</label>
+                <input type="password" id="password-nueva" placeholder="Nueva contraseña">
+            </div>
+            <div class="form-group">
+                <label>Confirmar nueva contraseña:</label>
+                <input type="password" id="password-confirmar" placeholder="Repite la nueva contraseña">
+            </div>
+            <button class="btn btn-deposit" onclick="cambiarPassword()">Cambiar contraseña</button>
+        </section>
+
+        <section class="section-card">
             <h2>Editar Perfil</h2>
             <p style="font-size: 0.9em; color: #666;">
                 Deja en blanco los campos que no quieras modificar.
@@ -152,6 +171,7 @@
             </div>
             <button class="btn btn-deposit" onclick="actualizarPerfil()">Guardar cambios</button>
         </section>
+
         <section class="section-card">
             <h2>Resumen por Categorías</h2>
             <div class="ops-grid" style="margin-bottom: 15px;">
@@ -165,13 +185,14 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                <button class="btn btn-primary" style="width:auto; padding:10px 20px;" 
+                <button class="btn btn-primary" style="width:auto; padding:10px 20px;"
                     onclick="cargarResumenCategorias()">Ver resumen</button>
-                <button class="btn btn-secondary" style="width:auto; padding:10px 20px;" 
+                <button class="btn btn-secondary" style="width:auto; padding:10px 20px;"
                     onclick="verTodoResumen()">Ver todos</button>
             </div>
             <div id="category-summary" style="margin-top:15px;"></div>
         </section>
+
         <section class="section-card">
             <h2>Historial de Movimientos</h2>
             <div class="ops-grid" style="margin-bottom: 15px;">
@@ -187,8 +208,7 @@
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button class="btn btn-primary" style="width: auto; padding: 10px 20px;"
                     onclick="cargarHistorial()">Aplicar filtro</button>
-                <button class="btn btn-secondary" style="width: auto; padding: 10px 20px;" onclick="limpiarFiltro()">Ver
-                    todos</button>
+                <button class="btn btn-secondary" style="width: auto; padding: 10px 20px;" onclick="limpiarFiltro()">Ver todos</button>
             </div>
             <div id="transaction-list">
                 <p style="color: #999;">Pulsa "Ver todos" para cargar el historial.</p>
@@ -240,15 +260,12 @@
             }
         };
 
-        // OBTENER DATOS
         async function actualizarDatos() {
             const id = sessionStorage.getItem('accountId');
 
             try {
                 const response = await fetch(`/accounts/${id}`);
-
                 if (!response.ok) throw new Error();
-
                 const cuenta = await response.json();
 
                 let extraAlert = '';
@@ -264,15 +281,15 @@
                 }
 
                 document.getElementById('account-info').innerHTML = `
-            ${extraAlert}
-            <p><strong>Titular:</strong> ${cuenta.ownerName}</p>
-            <p><strong>Saldo:</strong> 
-                <span style="font-size:1.8em; color: ${colorClass}; font-weight: bold;">
-                    ${displayBalance.toFixed(2)} €
-                </span>
-            </p>
-            <p><small>ID: ${cuenta.id}</small></p>
-        `;
+                    ${extraAlert}
+                    <p><strong>Titular:</strong> ${cuenta.ownerName}</p>
+                    <p><strong>Saldo:</strong> 
+                        <span style="font-size:1.8em; color: ${colorClass}; font-weight: bold;">
+                            ${displayBalance.toFixed(2)} €
+                        </span>
+                    </p>
+                    <p><small>ID: ${cuenta.id}</small></p>
+                `;
 
                 cargarLimite();
                 cargarUmbral();
@@ -282,8 +299,7 @@
             }
         }
 
-        // OPERAR (DEPOSIT / WITHDRAW)
-       async function operar(tipo) {
+        async function operar(tipo) {
             const id = sessionStorage.getItem('accountId');
             const userId = sessionStorage.getItem('userId');
             const cantidad = document.getElementById('operation-amount').value;
@@ -361,22 +377,14 @@
             } catch (e) { console.error(e); }
         }
 
-        // TRANSFERENCIA
         async function transferir() {
             const fromId = sessionStorage.getItem('accountId');
             const userId = sessionStorage.getItem('userId');
             const toId = document.getElementById('destination-id').value;
             const amount = document.getElementById('transfer-amount').value;
 
-            if (!fromId) {
-                alert("Error: no hay cuenta activa");
-                return;
-            }
-
-            if (!toId || !amount || amount <= 0) {
-                alert("Introduce un ID destino y una cantidad válida");
-                return;
-            }
+            if (!fromId) { alert("Error: no hay cuenta activa"); return; }
+            if (!toId || !amount || amount <= 0) { alert("Introduce un ID destino y una cantidad válida"); return; }
 
             try {
                 const response = await fetch(
@@ -398,65 +406,41 @@
                     const msg = await response.text();
                     alert("Error: " + msg);
                 }
-
             } catch (error) {
                 alert("Error de conexión con el servidor");
             }
         }
 
-        // ELIMINAR CUENTA
         async function eliminarCuenta() {
             const id = sessionStorage.getItem('accountId');
-
             if (!confirm("¿Seguro? Esta acción no se puede deshacer")) return;
 
             try {
-                const response = await fetch(`/accounts/${id}`, {
-                    method: 'DELETE'
-                });
-
+                const response = await fetch(`/accounts/${id}`, { method: 'DELETE' });
                 const msg = await response.text();
-
-                if (response.ok) {
-                    alert(msg);
-                    cerrarSesion();
-                } else {
-                    alert(msg);
-                }
-
+                if (response.ok) { alert(msg); cerrarSesion(); }
+                else { alert(msg); }
             } catch (e) {
                 alert("Error eliminando cuenta");
             }
         }
 
-        // LÍMITE DE GASTO - CARGAR
         async function cargarLimite() {
             const id = sessionStorage.getItem('accountId');
             const response = await fetch(`/accounts/${id}`);
             const cuenta = await response.json();
-
             const limite = cuenta.limiteGastoMensual;
             const gastado = cuenta.gastoMensualActual;
-
             document.getElementById('spending-limit-info').innerHTML = limite > 0
                 ? `<p>Límite actual: <strong>${limite.toFixed(2)} €</strong> — Gastado este mes: <strong>${gastado.toFixed(2)} €</strong></p>`
                 : `<p>No tienes límite de gasto configurado.</p>`;
         }
 
-        // LÍMITE DE GASTO - GUARDAR
         async function guardarLimite() {
             const id = sessionStorage.getItem('accountId');
             const limite = document.getElementById('spending-limit-input').value;
-
-            if (limite === '' || limite < 0) {
-                alert("Introduce un límite válido");
-                return;
-            }
-
-            const response = await fetch(`/accounts/${id}/limite?limite=${limite}`, {
-                method: 'PUT'
-            });
-
+            if (limite === '' || limite < 0) { alert("Introduce un límite válido"); return; }
+            const response = await fetch(`/accounts/${id}/limite?limite=${limite}`, { method: 'PUT' });
             if (response.ok) {
                 alert("Límite guardado correctamente");
                 document.getElementById('spending-limit-input').value = '';
@@ -467,33 +451,21 @@
             }
         }
 
-        // UMBRAL SALDO BAJO - CARGAR
         async function cargarUmbral() {
             const id = sessionStorage.getItem('accountId');
             const response = await fetch(`/accounts/${id}`);
             const cuenta = await response.json();
-
             const umbral = cuenta.umbralSaldoBajo;
-
             document.getElementById('umbral-info').innerHTML = umbral > 0
                 ? `<p>Umbral actual: <strong>${umbral.toFixed(2)} €</strong></p>`
                 : `<p>No tienes umbral de alerta configurado.</p>`;
         }
 
-        // UMBRAL SALDO BAJO - GUARDAR
         async function guardarUmbral() {
             const id = sessionStorage.getItem('accountId');
             const umbral = document.getElementById('umbral-input').value;
-
-            if (umbral === '' || umbral < 0) {
-                alert("Introduce un umbral válido");
-                return;
-            }
-
-            const response = await fetch(`/accounts/${id}/umbral?umbral=${umbral}`, {
-                method: 'PUT'
-            });
-
+            if (umbral === '' || umbral < 0) { alert("Introduce un umbral válido"); return; }
+            const response = await fetch(`/accounts/${id}/umbral?umbral=${umbral}`, { method: 'PUT' });
             if (response.ok) {
                 alert("Umbral guardado correctamente");
                 document.getElementById('umbral-input').value = '';
@@ -504,26 +476,56 @@
             }
         }
 
-        // EDITAR PERFIL
+        // CAMBIAR CONTRASEÑA
+        async function cambiarPassword() {
+            const userId = sessionStorage.getItem('userId');
+            const actual = document.getElementById('password-actual').value;
+            const nueva = document.getElementById('password-nueva').value;
+            const confirmar = document.getElementById('password-confirmar').value;
+
+            if (!actual || !nueva || !confirmar) {
+                alert("Rellena todos los campos");
+                return;
+            }
+
+            if (nueva !== confirmar) {
+                alert("La nueva contraseña y la confirmación no coinciden");
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `/auth/change-password/${userId}?passwordActual=${encodeURIComponent(actual)}&passwordNueva=${encodeURIComponent(nueva)}`,
+                    { method: 'PUT' }
+                );
+
+                if (response.ok) {
+                    alert("Contraseña cambiada correctamente");
+                    document.getElementById('password-actual').value = '';
+                    document.getElementById('password-nueva').value = '';
+                    document.getElementById('password-confirmar').value = '';
+                } else {
+                    const msg = await response.text();
+                    alert("Error: " + msg);
+                }
+            } catch (e) {
+                alert("Error de conexión");
+            }
+        }
+
         async function actualizarPerfil() {
             const userId = sessionStorage.getItem('userId');
             const email = document.getElementById('edit-email').value;
             const phone = document.getElementById('edit-phone').value;
 
-            if (!email && !phone) {
-                alert("Introduce al menos un campo para actualizar");
-                return;
-            }
+            if (!email && !phone) { alert("Introduce al menos un campo para actualizar"); return; }
 
             let params = new URLSearchParams();
             if (email) params.append('email', email);
             if (phone) params.append('phone', phone);
 
             try {
-                const response = await fetch(`/auth/update/${userId}?${params.toString()}`, {
-                    method: 'PUT'
-                });
-
+                const response = await fetch(`/auth/update/${userId}?${params.toString()}`, { method: 'PUT' });
                 if (response.ok) {
                     alert("Perfil actualizado correctamente");
                     document.getElementById('edit-email').value = '';
@@ -532,27 +534,18 @@
                     const msg = await response.text();
                     alert("Error: " + msg);
                 }
-
             } catch (e) {
                 alert("Error de conexión");
             }
         }
 
-        // HISTORIAL
         async function cargarHistorial() {
             const id = sessionStorage.getItem('accountId');
             const from = document.getElementById('filter-from').value;
             const to = document.getElementById('filter-to').value;
 
-            if (!from || !to) {
-                alert("Selecciona fecha inicio y fecha fin");
-                return;
-            }
-
-            if (from > to) {
-                alert("La fecha inicio no puede ser posterior a la fecha fin");
-                return;
-            }
+            if (!from || !to) { alert("Selecciona fecha inicio y fecha fin"); return; }
+            if (from > to) { alert("La fecha inicio no puede ser posterior a la fecha fin"); return; }
 
             try {
                 const userId = sessionStorage.getItem('userId');
@@ -620,7 +613,7 @@
                     </div>
                     ${m.concepto ? `<div style="font-size:0.85em; color:#555; margin-top:3px;">📝 ${m.concepto}</div>` : ''}
                     <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-                        <select onchange="cambiarCategoria(${m.id}, this.value)" 
+                        <select onchange="cambiarCategoria(${m.id}, this.value)"
                             style="font-size:0.85em; padding:2px 6px; border-radius:8px; border:1px solid #ccc;">
                             ${selectOpts}
                         </select>
@@ -641,30 +634,6 @@
             }
         }
 
-        // HU22 T2+T3 – Logout: llamada al backend para invalidar token, borrado de storage y redirección
-        async function cerrarSesion() {
-                    const sessionToken = sessionStorage.getItem('sessionToken');
-
-                    try {
-                        // HU22 T1 – Notificar al servidor para añadir el token a la lista negra
-                        await fetch(`/auth/logout?sessionToken=${encodeURIComponent(sessionToken || '')}`, {
-                            method: 'POST'
-                        });
-                    } catch (e) {
-                        // Continuar con logout local aunque el servidor falle
-                        console.warn('No se pudo contactar al servidor para logout', e);
-                    }
-
-                    // HU22 T2 – Eliminar TODOS los datos de sesión del frontend
-                    sessionStorage.clear();
-                    localStorage.removeItem('userId');
-                    localStorage.removeItem('userRole');
-                    localStorage.removeItem('sessionToken');
-
-                    // HU22 T3+T4 – Reemplazar historial y redirigir: el botón "Atrás" no puede volver al dashboard
-                    history.replaceState(null, '', 'index.html');
-                    window.location.replace('index.html');
-                }
         async function cargarResumenCategorias() {
             const accountId = sessionStorage.getItem('accountId');
             const from = document.getElementById('cat-from').value;
@@ -678,10 +647,7 @@
                 const data = await res.json();
                 const contenedor = document.getElementById('category-summary');
 
-                if (!data.length) {
-                    contenedor.innerHTML = '<p style="color:#999;">Sin gastos en este período.</p>';
-                    return;
-                }
+                if (!data.length) { contenedor.innerHTML = '<p style="color:#999;">Sin gastos en este período.</p>'; return; }
 
                 const catEmoji = {
                     ALIMENTACION:'🛒', TRANSPORTE:'🚗', OCIO:'🎬', SALUD:'💊',
@@ -701,10 +667,9 @@
                         </div>
                     </div>`;
                 }).join('');
-            } catch(e) {
-                alert('Error de conexión');
-            }
+            } catch(e) { alert('Error de conexión'); }
         }
+
         async function verTodoResumen() {
             const accountId = sessionStorage.getItem('accountId');
             document.getElementById('cat-from').value = '';
@@ -716,10 +681,7 @@
                 const data = await res.json();
                 const contenedor = document.getElementById('category-summary');
 
-                if (!data.length) {
-                    contenedor.innerHTML = '<p style="color:#999;">Sin gastos registrados.</p>';
-                    return;
-                }
+                if (!data.length) { contenedor.innerHTML = '<p style="color:#999;">Sin gastos registrados.</p>'; return; }
 
                 const catEmoji = {
                     ALIMENTACION:'🛒', TRANSPORTE:'🚗', OCIO:'🎬', SALUD:'💊',
@@ -739,12 +701,10 @@
                         </div>
                     </div>`;
                 }).join('');
-            } catch(e) {
-                alert('Error de conexión');
-            }
+            } catch(e) { alert('Error de conexión'); }
         }
 
-                async function crearTransferenciaProgramada() {
+        async function crearTransferenciaProgramada() {
             const fromId = sessionStorage.getItem('accountId');
             const userId = sessionStorage.getItem('userId');
             const toId = document.getElementById('st-to').value;
@@ -752,10 +712,7 @@
             const frequency = document.getElementById('st-frequency').value;
             const startDate = document.getElementById('st-start').value;
 
-            if (!toId || !amount || !startDate) {
-                alert('Rellena todos los campos');
-                return;
-            }
+            if (!toId || !amount || !startDate) { alert('Rellena todos los campos'); return; }
 
             try {
                 const res = await fetch(
@@ -772,9 +729,7 @@
                     const msg = await res.text();
                     alert('Error: ' + msg);
                 }
-            } catch (e) {
-                alert('Error de conexión');
-            }
+            } catch (e) { alert('Error de conexión'); }
         }
 
         async function cargarTransferenciasProgramadas() {
@@ -810,9 +765,7 @@
                         </div>
                     </div>
                 `).join('');
-            } catch (e) {
-                console.error('Error cargando transferencias programadas', e);
-            }
+            } catch (e) { console.error('Error cargando transferencias programadas', e); }
         }
 
         async function cancelarTransferenciaProgramada(id) {
@@ -820,9 +773,7 @@
             if (!confirm('¿Cancelar esta transferencia programada?')) return;
 
             try {
-                const res = await fetch(`/scheduled-transfers/${id}?requesterId=${userId}`, {
-                    method: 'DELETE'
-                });
+                const res = await fetch(`/scheduled-transfers/${id}?requesterId=${userId}`, { method: 'DELETE' });
                 if (res.ok) {
                     alert('Transferencia cancelada');
                     cargarTransferenciasProgramadas();
@@ -830,10 +781,9 @@
                     const msg = await res.text();
                     alert('Error: ' + msg);
                 }
-            } catch (e) {
-                alert('Error de conexión');
-            }
+            } catch (e) { alert('Error de conexión'); }
         }
+
         function descargarExtracto() {
             const accountId = sessionStorage.getItem('accountId');
             const requesterId = sessionStorage.getItem('userId');
@@ -841,6 +791,23 @@
             window.open(`/accounts/${accountId}/statement/pdf?requesterId=${requesterId}`, '_blank');
         }
 
+        async function cerrarSesion() {
+            const sessionToken = sessionStorage.getItem('sessionToken');
+
+            try {
+                await fetch(`/auth/logout?sessionToken=${encodeURIComponent(sessionToken || '')}`, { method: 'POST' });
+            } catch (e) {
+                console.warn('No se pudo contactar al servidor para logout', e);
+            }
+
+            sessionStorage.clear();
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('sessionToken');
+
+            history.replaceState(null, '', 'index.html');
+            window.location.replace('index.html');
+        }
 
     </script>
 

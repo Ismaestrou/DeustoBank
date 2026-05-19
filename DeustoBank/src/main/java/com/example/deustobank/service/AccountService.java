@@ -46,45 +46,24 @@ public class AccountService {
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    /**
-     * @brief Obtiene todas las cuentas del sistema.
-     * @return Lista de todas las cuentas.
-    */
+    // Obtiene todas las cuentas del sistema
 
     public List<Account> getAll() {
         return repo.findAll();
     }
  
-    /**
-     * @brief Obtiene una cuenta por su ID.
-     * @param id ID de la cuenta.
-     * @return La cuenta encontrada.
-     * @throws RuntimeException si la cuenta no existe.
-    */
-
+    // Obtiene una cuenta por su ID
     public Account getById(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cuenta no encontrada"));
     }
  
-    /**
-     * @brief Obtiene todas las cuentas asociadas a un usuario.
-     * @param userId ID del usuario.
-     * @return Lista de cuentas del usuario.
-    */
-
+    // Obtiene cuentas asociadas a un usuario
     public List<Account> getAccountsByUser(Long userId) {
         return repo.findByUserId(userId);
     }
  
-    /**
-     * @brief Crea una nueva cuenta bancaria para un usuario.
-     * @param account Datos de la cuenta a crear.
-     * @param userId ID del usuario propietario.
-     * @return La cuenta creada y guardada.
-     * @throws RuntimeException si el usuario no existe o el saldo inicial es negativo.
-    */
-
+    // Crea una nueva cuenta con saldo inicial no negativo
     public Account create(Account account, Long userId) {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -97,15 +76,7 @@ public class AccountService {
         return repo.save(account);
     }
  
-    /**
-     * @brief Realiza un depósito en una cuenta.
-     * @param id ID de la cuenta destino.
-     * @param amount Cantidad a ingresar (debe ser positiva).
-     * @param requesterId ID del usuario que realiza la operación.
-     * @return La cuenta actualizada.
-     * @throws RuntimeException si la cantidad es inválida o el usuario no tiene acceso.
-    */
-
+    // Realiza un depósito y emite notificación
     public Account deposit(Long id, double amount, Long requesterId) {
         Account acc = validarCuentaActiva(id);
         checkAccess(acc, requesterId);
@@ -126,18 +97,7 @@ public class AccountService {
         return acc;
     }
  
-    /**
-     * @brief Realiza una retirada de fondos de una cuenta.
-     *
-     * Comprueba el límite de gasto mensual antes de ejecutar la operación.
-     *
-     * @param id ID de la cuenta.
-     * @param amount Cantidad a retirar (debe ser positiva).
-     * @param requesterId ID del usuario que realiza la operación.
-     * @return AccountResponse con la cuenta actualizada y aviso de saldo bajo si aplica.
-     * @throws RuntimeException si se supera el límite mensual o la cantidad es inválida.
-    */
-
+    // Realiza retirada controlando el límite de gasto mensual
     public AccountResponse withdraw(Long id, double amount, Long requesterId) {
         Account acc = validarCuentaActiva(id);
         checkAccess(acc, requesterId);
@@ -163,20 +123,7 @@ public class AccountService {
         return new AccountResponse(acc, comprobarSaldoBajo(acc));
     }
  
-    /**
-     * @brief Realiza una transferencia entre dos cuentas.
-     *
-     * Operación transaccional que descuenta de la cuenta origen y abona en la destino.
-     * Comprueba límite de gasto mensual de la cuenta origen.
-     *
-     * @param fromId ID de la cuenta origen.
-     * @param toId ID de la cuenta destino.
-     * @param amount Cantidad a transferir.
-     * @param requesterId ID del usuario que realiza la operación.
-     * @return Mensaje de aviso de saldo bajo si aplica, null en caso contrario.
-     * @throws RuntimeException si las cuentas son iguales, la cantidad es inválida o se supera el límite mensual.
-    */
-
+    // Realiza transferencia entre cuentas registrando movimientos y enviando notificaciones
     @Transactional
     public String transfer(Long fromId, Long toId, double amount, Long requesterId) {
         if (fromId.equals(toId)) {
@@ -217,13 +164,7 @@ public class AccountService {
         return comprobarSaldoBajo(from);
     }
  
-    /**
-     * @brief Elimina una cuenta bancaria y su historial de transacciones.
-     * @param id ID de la cuenta a eliminar.
-     * @param requesterId ID del usuario que solicita la eliminación.
-     * @throws RuntimeException si la cuenta tiene saldo negativo o el usuario no tiene acceso.
-    */
-
+    // Elimina una cuenta y todo su historial si no tiene deudas
     public void deleteAccount(Long id, Long requesterId) {
         Account acc = getById(id);
         checkAccess(acc, requesterId);
@@ -241,14 +182,7 @@ public class AccountService {
         repo.delete(acc);
     }
  
-    /**
-     * @brief Establece el límite de gasto mensual de una cuenta.
-     * @param id ID de la cuenta.
-     * @param limite Límite mensual en euros (debe ser >= 0).
-     * @return La cuenta actualizada.
-     * @throws RuntimeException si el límite es negativo.
-    */
-
+    // Establece límite mensual de gastos
     public Account setLimiteGastoMensual(Long id, double limite) {
         if (limite < 0) throw new RuntimeException("El límite no puede ser negativo");
         Account acc = getById(id);
@@ -256,14 +190,7 @@ public class AccountService {
         return repo.save(acc);
     }
  
-    /**
-     * @brief Establece el umbral de aviso de saldo bajo de una cuenta.
-     * @param id ID de la cuenta.
-     * @param umbral Umbral en euros (debe ser >= 0).
-     * @return La cuenta actualizada.
-     * @throws RuntimeException si el umbral es negativo.
-    */
-
+    // Establece umbral para saldo bajo
     public Account setUmbralSaldoBajo(Long id, double umbral) {
         if (umbral < 0) throw new RuntimeException("El umbral no puede ser negativo");
         Account acc = getById(id);
@@ -271,22 +198,11 @@ public class AccountService {
         return repo.save(acc);
     }
  
-    /**
-     * @brief Calcula el saldo total de todas las cuentas de un usuario.
-     * @param userId ID del usuario.
-     * @return Suma de saldos de todas sus cuentas.
-    */
-
     public double getTotalBalanceByUser(Long userId) {
         List<Account> accounts = repo.findByUserId(userId);
         return accounts.stream().mapToDouble(Account::getBalance).sum();
     }
  
-    /**
-     * @brief Obtiene estadísticas globales del sistema.
-     * @return DTO con número total de usuarios, transacciones y saldo acumulado.
-    */
-
     public SystemStatsDTO getSystemStats() {
         long totalUsers        = userRepo.count();
         long totalTransactions = transactionRepo.count();
@@ -294,13 +210,6 @@ public class AccountService {
         return new SystemStatsDTO(totalUsers, totalTransactions, totalBalance);
     }
  
-    /**
-     * @brief Valida que la cuenta existe y que su usuario está activo.
-     * @param id ID de la cuenta.
-     * @return La cuenta validada.
-     * @throws RuntimeException si el usuario está bloqueado.
-    */
-
     private Account validarCuentaActiva(Long id) {
         Account acc = getById(id);
         if (!acc.getUser().isActive()) {
@@ -309,15 +218,6 @@ public class AccountService {
         return acc;
     }
  
-    /**
-     * @brief Guarda una transacción en el historial.
-     * @param tipo Tipo de transacción (DEPOSIT, WITHDRAW, TRANSFER_IN, TRANSFER_OUT).
-     * @param amount Cantidad de la operación.
-     * @param acc Cuenta afectada.
-     * @param before Saldo antes de la operación.
-     * @param after Saldo después de la operación.
-    */
-
     private void guardarTransaccion(String tipo, double amount, Account acc,
                                     double before, double after) {
         Transaction t = new Transaction(tipo, amount, acc);
@@ -326,17 +226,6 @@ public class AccountService {
         transactionRepo.save(t);
     }
  
-    /**
-     * @brief Verifica que el usuario solicitante tiene acceso a la cuenta.
-     *
-     * Los administradores tienen acceso a cualquier cuenta.
-     * Los usuarios normales solo pueden acceder a sus propias cuentas.
-     *
-     * @param acc Cuenta a la que se intenta acceder.
-     * @param requesterId ID del usuario solicitante.
-     * @throws RuntimeException si el usuario no tiene permisos.
-    */
-
     private void checkAccess(Account acc, Long requesterId) {
         User requester = userRepo.findById(requesterId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -347,12 +236,6 @@ public class AccountService {
         }
     }
  
-    /**
-     * @brief Comprueba si el saldo de la cuenta está por debajo del umbral configurado.
-     * @param acc Cuenta a comprobar.
-     * @return Mensaje de aviso si el saldo es bajo, null si no aplica.
-    */
-
     private String comprobarSaldoBajo(Account acc) {
         if (acc.getUmbralSaldoBajo() > 0 && acc.getBalance() < acc.getUmbralSaldoBajo()) {
             return "Saldo bajo: tu saldo (" + String.format("%.2f", acc.getBalance())

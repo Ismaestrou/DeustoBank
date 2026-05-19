@@ -9,7 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -173,7 +173,6 @@ class AccountControllerTest {
     }
 
     @Test
-<<<<<<< Updated upstream
     void getTransactions_Success() throws Exception {
         Transaction t = new Transaction();
         t.setId(100L);
@@ -266,28 +265,5 @@ class AccountControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(200));
     }
-=======
-void getTransactions_Success() throws Exception {
-    Transaction t = new Transaction();
-    t.setId(100L);
-    
-    // 1. Cambia findByAccountId → findByAccountIdOrderByDateDesc
-    when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(t));
 
-    // 2. Añade el requesterId obligatorio
-    // Necesitas mockear que la cuenta pertenece al usuario 1
-    Account accountWithUser = new Account();
-    accountWithUser.setId(10L);
-    accountWithUser.setBalance(100.0);
-    com.example.deustobank.model.User user = new com.example.deustobank.model.User();
-    user.setId(1L);
-    accountWithUser.setUser(user);
-    when(accountService.getById(10L)).thenReturn(accountWithUser);
-
-    mockMvc.perform(get("/accounts/10/transactions")
-                .param("requesterId", "1"))  // 3. Parámetro obligatorio
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$[0].id").value(100));
-}
->>>>>>> Stashed changes
 }

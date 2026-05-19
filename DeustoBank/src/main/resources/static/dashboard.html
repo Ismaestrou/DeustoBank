@@ -79,6 +79,37 @@
             </div>
             <button class="btn btn-transfer" onclick="transferir()">Ejecutar Transferencia</button>
         </section>
+        <section class="section-card">
+            <h2>Transferencias Programadas</h2>
+            <p style="font-size: 0.9em; color: #666;">Automatiza pagos fijos con la frecuencia que necesites.</p>
+
+            <div class="form-group">
+                <label>ID Cuenta Destino:</label>
+                <input type="number" id="st-to" placeholder="ID del receptor">
+            </div>
+            <div class="form-group">
+                <label>Cantidad (€):</label>
+                <input type="number" id="st-amount" placeholder="0.00" min="0.01" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Frecuencia:</label>
+                <select id="st-frequency" style="width:100%; padding:8px; border-radius:4px; border:1px solid #ccc;">
+                    <option value="DAILY">📅 Diaria</option>
+                    <option value="WEEKLY">📅 Semanal</option>
+                    <option value="MONTHLY" selected>📅 Mensual</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Fecha inicio:</label>
+                <input type="date" id="st-start">
+            </div>
+            <button class="btn btn-transfer" onclick="crearTransferenciaProgramada()">Programar transferencia</button>
+
+            <h3 style="margin-top: 25px; font-size: 1em;">Transferencias activas</h3>
+            <div id="st-list" style="margin-top: 10px;">
+                <p style="color:#999;">Cargando...</p>
+            </div>
+        </section>
 
         <section class="section-card">
             <h2>Límite de Gasto Mensual</h2>
@@ -202,6 +233,7 @@
                 sessionStorage.setItem('accountId', cuenta.id);
                 actualizarDatos();
                 cargarNotificaciones();
+                cargarTransferenciasProgramadas();
 
             } catch (e) {
                 alert("Error cargando cuentas");
@@ -523,7 +555,8 @@
             }
 
             try {
-                const response = await fetch(`/accounts/${id}/transactions?from=${from}&to=${to}`);
+                const userId = sessionStorage.getItem('userId');
+                const response = await fetch(`/accounts/${id}/transactions?from=${from}&to=${to}&requesterId=${userId}`);
                 const movimientos = await response.json();
                 renderizarHistorial(movimientos);
             } catch (e) {
@@ -537,7 +570,8 @@
             document.getElementById('filter-to').value = '';
 
             try {
-                const response = await fetch(`/accounts/${id}/transactions`);
+                const userId = sessionStorage.getItem('userId');
+                const response = await fetch(`/accounts/${id}/transactions?requesterId=${userId}`);
                 const movimientos = await response.json();
                 renderizarHistorial(movimientos);
             } catch (e) {
@@ -710,6 +744,96 @@
             }
         }
 
+                async function crearTransferenciaProgramada() {
+            const fromId = sessionStorage.getItem('accountId');
+            const userId = sessionStorage.getItem('userId');
+            const toId = document.getElementById('st-to').value;
+            const amount = document.getElementById('st-amount').value;
+            const frequency = document.getElementById('st-frequency').value;
+            const startDate = document.getElementById('st-start').value;
+
+            if (!toId || !amount || !startDate) {
+                alert('Rellena todos los campos');
+                return;
+            }
+
+            try {
+                const res = await fetch(
+                    `/scheduled-transfers?fromId=${fromId}&toId=${toId}&amount=${amount}&frequency=${frequency}&startDate=${startDate}&requesterId=${userId}`,
+                    { method: 'POST' }
+                );
+                if (res.ok) {
+                    alert('Transferencia programada creada correctamente');
+                    document.getElementById('st-to').value = '';
+                    document.getElementById('st-amount').value = '';
+                    document.getElementById('st-start').value = '';
+                    cargarTransferenciasProgramadas();
+                } else {
+                    const msg = await res.text();
+                    alert('Error: ' + msg);
+                }
+            } catch (e) {
+                alert('Error de conexión');
+            }
+        }
+
+        async function cargarTransferenciasProgramadas() {
+            const accountId = sessionStorage.getItem('accountId');
+            try {
+                const res = await fetch(`/scheduled-transfers/account/${accountId}`);
+                const lista = await res.json();
+                const contenedor = document.getElementById('st-list');
+
+                if (!lista.length) {
+                    contenedor.innerHTML = '<p style="color:#999;">No tienes transferencias programadas.</p>';
+                    return;
+                }
+
+                const freqLabel = { DAILY: 'Diaria', WEEKLY: 'Semanal', MONTHLY: 'Mensual' };
+
+                contenedor.innerHTML = lista.map(st => `
+                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-bottom: 10px; background: #f9f9f9;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong>${st.amount.toFixed(2)} €</strong> → Cuenta <strong>${st.toAccount.id}</strong>
+                                <span style="margin-left:10px; background:#e8f4fd; color:#1a6a9a; padding:2px 8px; border-radius:12px; font-size:0.8em;">
+                                    ${freqLabel[st.frequency]}
+                                </span>
+                            </div>
+                            <button onclick="cancelarTransferenciaProgramada(${st.id})"
+                                style="background:#d9534f; color:white; border:none; border-radius:4px; padding:4px 10px; cursor:pointer; font-size:0.85em;">
+                                Cancelar
+                            </button>
+                        </div>
+                        <div style="font-size:0.85em; color:#666; margin-top:6px;">
+                            Próxima ejecución: <strong>${st.nextExecution}</strong>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Error cargando transferencias programadas', e);
+            }
+        }
+
+        async function cancelarTransferenciaProgramada(id) {
+            const userId = sessionStorage.getItem('userId');
+            if (!confirm('¿Cancelar esta transferencia programada?')) return;
+
+            try {
+                const res = await fetch(`/scheduled-transfers/${id}?requesterId=${userId}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    alert('Transferencia cancelada');
+                    cargarTransferenciasProgramadas();
+                } else {
+                    const msg = await res.text();
+                    alert('Error: ' + msg);
+                }
+            } catch (e) {
+                alert('Error de conexión');
+            }
+        }
         function descargarExtracto() {
             const accountId = sessionStorage.getItem('accountId');
             const requesterId = sessionStorage.getItem('userId');

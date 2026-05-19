@@ -185,11 +185,8 @@ class AccountServiceTest {
         when(accountRepo.findById(10L)).thenReturn(Optional.of(account));
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
         when(transactionRepo.findByAccountIdOrderByDateDesc(10L)).thenReturn(List.of(new Transaction()));
-<<<<<<< Updated upstream
         
-=======
 
->>>>>>> Stashed changes
         assertDoesNotThrow(() -> accountService.deleteAccount(10L, 1L));
         verify(transactionRepo).deleteAll(anyList());
         verify(accountRepo).delete(account);

@@ -12,11 +12,8 @@ import com.example.deustobank.model.Account;
 import com.example.deustobank.model.AccountResponse;
 import com.example.deustobank.model.Transaction;
 import com.example.deustobank.service.AccountService;
-import com.example.deustobank.service.PdfService;
 import com.example.deustobank.repository.TransactionRepository;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
+ 
 /**
  * @file AccountController.java
  * @brief Controlador REST para la gestión de cuentas bancarias.
@@ -45,9 +42,6 @@ public class AccountController {
      * @brief GET /accounts — Obtiene todas las cuentas del sistema.
      * @return Lista de todas las cuentas.
     */
-
-    @Autowired
-    private PdfService pdfService;
 
     @GetMapping
     public List<Account> getAll() {
@@ -231,24 +225,5 @@ public class AccountController {
     @PutMapping("/{id}/umbral")
     public Account setUmbralSaldoBajo(@PathVariable Long id, @RequestParam double umbral) {
         return service.setUmbralSaldoBajo(id, umbral);
-    }
-
-    @GetMapping("/{id}/statement/pdf")
-    public ResponseEntity<byte[]> getPdfStatement(@PathVariable Long id, @RequestParam Long requesterId) {
-        Account acc = service.getById(id);
-        if (!acc.getUser().getId().equals(requesterId)) {
-            return ResponseEntity.status(403).build();
-        }
-        
-        List<Transaction> transactions = transactionRepo.findByAccountIdOrderByDateDesc(id);
-        byte[] pdfBytes = pdfService.generateStatement(acc, transactions);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "extracto_cuenta_" + id + ".pdf");
-        
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(pdfBytes);
     }
 }

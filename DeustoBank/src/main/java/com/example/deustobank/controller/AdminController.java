@@ -41,9 +41,6 @@ public class AdminController {
     @Autowired
     private ExportService exportService;
 
-    @Autowired
-    private com.example.deustobank.service.UserService userService;
-
     @GetMapping("/users")
     public ResponseEntity<?> getAllUsers(@RequestParam Long requesterId) {
         authService.checkAdmin(requesterId);
@@ -161,12 +158,5 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
-    }
-
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id, @RequestParam Long requesterId) {
-        authService.checkAdmin(requesterId);
-        userService.deleteUser(id);
-        return ResponseEntity.ok().build();
     }
 }

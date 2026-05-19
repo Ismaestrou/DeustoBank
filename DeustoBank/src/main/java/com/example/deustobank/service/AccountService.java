@@ -15,9 +15,7 @@ import com.example.deustobank.repository.UserRepository;
 import com.example.deustobank.service.AlertService;
  
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.context.ApplicationEventPublisher;
-import com.example.deustobank.event.NotificationEvent;
-
+ 
 /**
  * @file AccountService.java
  * @brief Servicio principal para la gestión de cuentas bancarias.
@@ -43,9 +41,7 @@ public class AccountService {
  
     @Autowired
     private AlertService alertService;
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
-
+ 
     /**
      * @brief Obtiene todas las cuentas del sistema.
      * @return Lista de todas las cuentas.
@@ -122,7 +118,6 @@ public class AccountService {
  
         guardarTransaccion("DEPOSIT", amount, acc, before, after);
         alertService.checkAndAlert(acc, amount);
-        eventPublisher.publishEvent(new NotificationEvent(this, acc.getUser().getId(), "Depósito de " + amount + "€ realizado con éxito.", "INFO"));
         return acc;
     }
  
@@ -159,7 +154,6 @@ public class AccountService {
         repo.save(acc);
         guardarTransaccion("WITHDRAW", amount, acc, before, after);
         alertService.checkAndAlert(acc, amount);
-        eventPublisher.publishEvent(new NotificationEvent(this, acc.getUser().getId(), "Retirada de " + amount + "€ realizada con éxito.", "INFO"));
         return new AccountResponse(acc, comprobarSaldoBajo(acc));
     }
  
@@ -212,8 +206,7 @@ public class AccountService {
         guardarTransaccion("TRANSFER_IN", amount, to, toBefore, to.getBalance());
         alertService.checkAndAlert(from, amount);
         alertService.checkAndAlert(to, amount);
-        eventPublisher.publishEvent(new NotificationEvent(this, from.getUser().getId(), "Transferencia enviada de " + amount + "€.", "INFO"));
-        eventPublisher.publishEvent(new NotificationEvent(this, to.getUser().getId(), "Has recibido una transferencia de " + amount + "€.", "INFO"));
+ 
         return comprobarSaldoBajo(from);
     }
  

@@ -201,7 +201,6 @@
                             <th style="padding: 12px; text-align: left;">Txns</th>
                             <th style="padding: 12px; text-align: left;">Acción</th>
                             <th style="padding: 12px; text-align: left;">Contraseña</th>
-                            <th style="padding: 12px; text-align: left;">Opciones</th>
                         </tr>
                     </thead>
                     <tbody id="usuarios-table-body">
@@ -373,10 +372,7 @@
                         <td style="padding:10px;">${transactions}</td>
                         <td style="padding:10px;">${btnEstado}</td>
                         <td style="padding:10px;"><button class="btn btn-warning" onclick="resetPassword(${user.id})">Resetear</button></td>
-                        <td style="padding:10px;">
-                            <button onclick="abrirEditModal(${user.id},'${user.fullName}','${user.email}','${user.dni}','${user.phone || ''}')" style="background:#1a3c5e;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">&#9998; Editar</button>
-                            <button onclick="eliminarUsuario(${user.id})" style="background:#dc3545;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;margin-left:5px;">&#128465; Eliminar</button>
-                        </td>`;
+                        <td style="padding:10px;"><button onclick="abrirEditModal(${user.id},'${user.fullName}','${user.email}','${user.dni}','${user.phone || ''}')" style="background:#1a3c5e;color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;">&#9998; Editar</button></td>`;
                     tableBody.appendChild(tr);
                 }
             } catch (e) {
@@ -433,20 +429,6 @@
             try {
                 const res = await fetch(`/api/admin/users/${userId}/status?requesterId=${requesterId}`, { method: 'PUT' });
                 if (res.ok) cargarUsuarios(); else alert('Error al cambiar estado');
-            } catch (e) { alert('Error de conexión'); }
-        }
-
-        async function eliminarUsuario(userId) {
-            const requesterId = sessionStorage.getItem('userId');
-            if (!confirm('¿Estás seguro de que quieres eliminar definitivamente este usuario y todos sus datos asociados?')) return;
-            try {
-                const res = await fetch(`/api/admin/users/${userId}?requesterId=${requesterId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    alert('Usuario eliminado con éxito');
-                    cargarUsuarios();
-                } else {
-                    alert('Error al eliminar usuario');
-                }
             } catch (e) { alert('Error de conexión'); }
         }
 

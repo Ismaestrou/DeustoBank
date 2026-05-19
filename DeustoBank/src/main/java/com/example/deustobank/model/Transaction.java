@@ -23,6 +23,11 @@ public class Transaction {
     private double balanceAfter;
 
     @ManyToOne
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties({
+        "user",
+        "hibernateLazyInitializer",
+        "handler"
+    })
     private Account account;
 
     public Transaction(String type, double amount, Account account) {

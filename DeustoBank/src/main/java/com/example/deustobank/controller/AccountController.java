@@ -41,15 +41,22 @@ public class AccountController {
     }
 
     @GetMapping("/{id}/transactions")
-    public List<Transaction> getTransactions(@PathVariable Long id,
+    public ResponseEntity<?> getTransactions(@PathVariable Long id,
+            @RequestParam Long requesterId,
             @RequestParam(required = false) String from,
             @RequestParam(required = false) String to) {
+                Account acc = service.getById(id);
+
+        if (!acc.getUser().getId().equals(requesterId)) {
+            return ResponseEntity.status(403).body("No autorizado");
+}
         if (from != null && to != null) {
             LocalDateTime fromDate = LocalDate.parse(from).atStartOfDay();
             LocalDateTime toDate = LocalDate.parse(to).atTime(23, 59, 59);
-            return transactionRepo.findByAccountIdAndDateBetween(id, fromDate, toDate);
+            return ResponseEntity.ok(transactionRepo.findByAccountIdAndDateBetween(id, fromDate, toDate));
         }
-        return transactionRepo.findByAccountId(id);
+        //return transactionRepo.findByAccountId(id);
+        return ResponseEntity.ok(transactionRepo.findByAccountIdOrderByDateDesc(id));
     }
 
     @GetMapping("/transactions/{id}")

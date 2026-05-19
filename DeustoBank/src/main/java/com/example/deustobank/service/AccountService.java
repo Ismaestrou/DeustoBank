@@ -171,7 +171,8 @@ public class AccountService {
             );
         }
 
-        List<Transaction> transactions = transactionRepo.findByAccountId(id);
+        //List<Transaction> transactions = transactionRepo.findByAccountId(id);
+        List<Transaction> transactions = transactionRepo.findByAccountIdOrderByDateDesc(id);
 
         if (!transactions.isEmpty()) {
             transactionRepo.deleteAll(transactions);

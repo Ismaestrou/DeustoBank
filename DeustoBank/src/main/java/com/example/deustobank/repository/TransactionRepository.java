@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
-    List<Transaction> findByAccountId(Long accountId);
+    //List<Transaction> findByAccountId(Long accountId);
+    List<Transaction> findByAccountIdOrderByDateDesc(Long accountId);
     long countByAccountUserId(Long userId);
     List<Transaction> findByAccountIdAndDateBetween(Long accountId, LocalDateTime from, LocalDateTime to);
 

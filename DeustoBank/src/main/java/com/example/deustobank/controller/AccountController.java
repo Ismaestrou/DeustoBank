@@ -12,11 +12,8 @@ import com.example.deustobank.model.Account;
 import com.example.deustobank.model.AccountResponse;
 import com.example.deustobank.model.Transaction;
 import com.example.deustobank.service.AccountService;
-import com.example.deustobank.service.PdfService;
 import com.example.deustobank.repository.TransactionRepository;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-
+ 
 /**
  * @file AccountController.java
  * @brief Controlador REST para la gestión de cuentas bancarias.
@@ -41,10 +38,18 @@ public class AccountController {
     @Autowired
     private TransactionRepository transactionRepo;
  
+<<<<<<< HEAD
     @Autowired
     private PdfService pdfService;
 
     // Obtiene todas las cuentas del sistema
+=======
+    /**
+     * @brief GET /accounts — Obtiene todas las cuentas del sistema.
+     * @return Lista de todas las cuentas.
+    */
+
+>>>>>>> parent of eb770fd (Resolve merge conflicts from stash)
     @GetMapping
     public List<Account> getAll() {
         return service.getAll();
@@ -156,6 +161,7 @@ public class AccountController {
     public Account setUmbralSaldoBajo(@PathVariable Long id, @RequestParam double umbral) {
         return service.setUmbralSaldoBajo(id, umbral);
     }
+<<<<<<< HEAD
 
     // Genera y descarga el extracto bancario en PDF
     @GetMapping("/{id}/statement/pdf")
@@ -176,4 +182,6 @@ public class AccountController {
                 .headers(headers)
                 .body(pdfBytes);
     }
+=======
+>>>>>>> parent of eb770fd (Resolve merge conflicts from stash)
 }

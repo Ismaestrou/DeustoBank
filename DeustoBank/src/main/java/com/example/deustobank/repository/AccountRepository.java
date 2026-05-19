@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
 	List<Account> findByUserId(Long userId);
+	void deleteByUserId(Long userId);
 	@Query("SELECT COALESCE(SUM(a.balance), 0) FROM Account a")
 	double sumTotalBalance();
 }

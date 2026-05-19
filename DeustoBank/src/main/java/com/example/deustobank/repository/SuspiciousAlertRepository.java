@@ -14,4 +14,6 @@ public interface SuspiciousAlertRepository extends JpaRepository<SuspiciousAlert
         Long accountId,
         SuspiciousAlert.AlertType alertType
     );
+
+    void deleteByAccountId(Long accountId);
 }

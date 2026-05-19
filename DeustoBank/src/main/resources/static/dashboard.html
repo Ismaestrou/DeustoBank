@@ -35,6 +35,7 @@
             <div id="account-info" class="account-details">
                 <p>Cargando datos...</p>
             </div>
+            <button class="btn btn-primary" onclick="descargarExtracto()" style="margin-top: 15px; width: auto; padding: 10px 20px;">Descargar Extracto PDF</button>
         </section>
 
         <section class="section-card">
@@ -570,6 +571,13 @@
             // HU22 T3+T4 – Reemplazar historial y redirigir: el botón "Atrás" no puede volver al dashboard
             history.replaceState(null, '', 'index.html');
             window.location.replace('index.html');
+        }
+
+        function descargarExtracto() {
+            const accountId = sessionStorage.getItem('accountId');
+            const requesterId = sessionStorage.getItem('userId');
+            if (!accountId || !requesterId) return;
+            window.open(`/accounts/${accountId}/statement/pdf?requesterId=${requesterId}`, '_blank');
         }
 
     </script>

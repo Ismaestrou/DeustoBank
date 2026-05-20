@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.deustobank.model.User;
+import com.example.deustobank.repository.UserRepository;
 import com.example.deustobank.service.AuthService;
 import com.example.deustobank.service.TokenBlacklistService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,9 @@ class AuthControllerTest {
 
     @MockBean
     private TokenBlacklistService tokenBlacklist;
+
+    @MockBean
+    private UserRepository userRepository;
 
     @Autowired
     private ObjectMapper objectMapper;

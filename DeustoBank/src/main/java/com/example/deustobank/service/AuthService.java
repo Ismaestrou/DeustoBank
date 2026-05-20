@@ -73,8 +73,6 @@ public class AuthService {
         }
 
         user.setFailedLoginAttempts(0);
-        userRepo.save(user);
-
         user.setLastLogin(java.time.LocalDateTime.now());
         userRepo.save(user);
 

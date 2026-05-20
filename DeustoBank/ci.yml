@@ -30,7 +30,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Grant execute permission for Maven Wrapper
-        run: chmod +x mvnw
+        run: chmod +x DeustoBank/mvnw
 
       - name: Run tests
-        run: ./mvnw test
+        run: cd DeustoBank && ./mvnw test

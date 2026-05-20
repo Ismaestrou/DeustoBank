@@ -24,12 +24,45 @@
 */
 var NAVTREE =
 [
-  [ "DeustoBank", "index.html", ]
+  [ "DeustoBank", "index.html", [
+    [ "DeustoBank", "md_DeustoBank_2README.html", [
+      [ "Configuración del Proyecto", "md_DeustoBank_2README.html#autotoc_md1", [
+        [ "Accesos Rápidos (Entorno de Desarrollo)", "md_DeustoBank_2README.html#autotoc_md2", null ]
+      ] ],
+      [ "Instrucciones de Construcción", "md_DeustoBank_2README.html#autotoc_md4", [
+        [ "Requisitos Previos", "md_DeustoBank_2README.html#autotoc_md5", null ],
+        [ "Comandos de Construcción", "md_DeustoBank_2README.html#autotoc_md6", null ]
+      ] ],
+      [ "Proceso de Despliegue desde Cero", "md_DeustoBank_2README.html#autotoc_md7", [
+        [ "Paso 1: Clonar y Preparar", "md_DeustoBank_2README.html#autotoc_md8", null ],
+        [ "Paso 2: Construcción del Proyecto", "md_DeustoBank_2README.html#autotoc_md9", null ],
+        [ "Paso 3: Ejecución de la Aplicación", "md_DeustoBank_2README.html#autotoc_md10", null ],
+        [ "Paso 4: Verificación", "md_DeustoBank_2README.html#autotoc_md11", null ]
+      ] ]
+    ] ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ]
+    ] ],
+    [ "Classes", "annotated.html", [
+      [ "Class List", "annotated.html", "annotated_dup" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", null ],
+        [ "Functions", "functions_func.html", null ],
+        [ "Variables", "functions_vars.html", null ]
+      ] ]
+    ] ],
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ]
+    ] ]
+  ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"index.html"
+"AccountControllerTest_8java.html",
+"interfacecom_1_1example_1_1deustobank_1_1repository_1_1ScheduledTransferRepository.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

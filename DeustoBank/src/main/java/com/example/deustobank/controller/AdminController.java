@@ -169,4 +169,10 @@ public class AdminController {
         userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/users/search")
+    public ResponseEntity<?> searchUsers(@RequestParam String q, @RequestParam Long requesterId) {
+        authService.checkAdmin(requesterId);
+        return ResponseEntity.ok(userRepository.searchByNameOrDni(q));
+    }
 }

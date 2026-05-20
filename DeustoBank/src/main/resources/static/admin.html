@@ -187,6 +187,12 @@
                 </div>
             </div>
 
+            <div style="margin-bottom: 16px;">
+                <input type="text" id="search-input" placeholder="🔍 Buscar por nombre o DNI..."
+                    oninput="buscarUsuario()"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;">
+            </div>
+
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                     <thead>
@@ -323,6 +329,44 @@
         document.getElementById('modal-overlay').addEventListener('click', function (e) {
             if (e.target === this) cerrarModal();
         });
+
+        async function buscarUsuario() {
+            const q = document.getElementById('search-input').value.trim();
+            const requesterId = sessionStorage.getItem('userId');
+
+            if (q.length === 0) {
+                cargarUsuarios();
+                return;
+            }
+
+            const res = await fetch(`/api/admin/users/search?q=${encodeURIComponent(q)}&requesterId=${requesterId}`);
+            if (!res.ok) return;
+            const users = await res.json();
+
+            const tableBody = document.getElementById('usuarios-table-body');
+            tableBody.innerHTML = '';
+
+            if (!users.length) {
+                tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center;">No se encontraron usuarios.</td></tr>';
+                return;
+            }
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:10px;">${user.id}</td>
+                    <td style="padding:10px;"><b>${user.fullName}</b></td>
+                    <td style="padding:10px;">${user.dni}</td>
+                    <td style="padding:10px;">${user.email}</td>
+                    <td style="padding:10px;">${user.role}</td>
+                    <td style="padding:10px;">${user.active ? '✅ Activo' : '🔴 Bloqueado'}</td>
+                    <td style="padding:10px;">—</td>
+                    <td style="padding:10px;">—</td>
+                    <td style="padding:10px;">—</td>
+                    <td style="padding:10px;">—</td>`;
+                tableBody.appendChild(tr);
+            });
+        }
 
         async function cargarUsuarios() {
             const requesterId = sessionStorage.getItem('userId');

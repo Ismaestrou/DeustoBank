@@ -20,12 +20,15 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
+    - name: Grant execute permission for Maven Wrapper
+      run: chmod +x DeustoBank/DeustoBank/mvnw
+
     - name: Build and analyze with Maven (JaCoCo)
-      run: ./mvnw -B clean verify
+      run: cd DeustoBank/DeustoBank && ./mvnw -B clean verify
       
     - name: Upload JaCoCo Coverage Report
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: jacoco-report
-        path: target/site/jacoco/
+        path: DeustoBank/DeustoBank/target/site/jacoco/

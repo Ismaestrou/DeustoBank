@@ -262,11 +262,18 @@
 
         async function actualizarDatos() {
             const id = sessionStorage.getItem('accountId');
+            const userId = sessionStorage.getItem('userId');
 
             try {
                 const response = await fetch(`/accounts/${id}`);
                 if (!response.ok) throw new Error();
                 const cuenta = await response.json();
+
+                const userRes = await fetch(`/auth/user/${userId}`);
+                const userData = await userRes.json();
+                const lastLogin = userData.lastLogin
+                    ? new Date(userData.lastLogin).toLocaleString('es-ES')
+                    : 'Primera sesión';
 
                 let extraAlert = '';
                 let colorClass = 'var(--deusto-blue)';
@@ -289,6 +296,7 @@
                         </span>
                     </p>
                     <p><small>ID: ${cuenta.id}</small></p>
+                    <p><small>🕐 Último inicio de sesión: <strong>${lastLogin}</strong></small></p>
                 `;
 
                 cargarLimite();

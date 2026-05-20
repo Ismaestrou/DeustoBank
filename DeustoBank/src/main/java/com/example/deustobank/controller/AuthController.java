@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.deustobank.model.User;
 import com.example.deustobank.service.AuthService;
 import com.example.deustobank.service.TokenBlacklistService;
+import com.example.deustobank.repository.UserRepository;
 
 @RestController
 @RequestMapping("/auth")
@@ -15,6 +16,9 @@ public class AuthController {
 
     @Autowired
     private AuthService service;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TokenBlacklistService tokenBlacklist;
@@ -70,5 +74,10 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
+        return userRepository.findById(id).<ResponseEntity<?>>map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 }

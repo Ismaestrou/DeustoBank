@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -43,4 +44,7 @@ public class User {
 
     @Column(nullable = false)
     private int failedLoginAttempts = 0;
+
+    @Column
+    private LocalDateTime lastLogin;
 }
